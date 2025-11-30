@@ -1,14 +1,13 @@
-# 编译esp32固件
+# Сборка прошивки для ESP32
 
-1. 下载`xiaozhi-esp32`
-   项目，按照这个教程配置项目环境[《Windows搭建 ESP IDF 5.3.2开发环境以及编译小智》](https://icnynnzcwou8.feishu.cn/wiki/JEYDwTTALi5s2zkGlFGcDiRknXf)
+1. Скачайте проект `xiaozhi-esp32` и настройте окружение по руководству:
+   [«Настройка ESP IDF 5.3.2 на Windows и сборка Xiaozhi»](https://icnynnzcwou8.feishu.cn/wiki/JEYDwTTALi5s2zkGlFGcDiRknXf)
 
-# 1.6.2以下版本固件
+# Прошивка до версии 1.6.2 включительно
 
-2. 打开`xiaozhi-esp32/main/Kconfig.projbuild`文件，找到`WEBSOCKET_URL`的`default`的内容，把`wss://api.tenclass.net`
-   改成你自己的地址，例如，我的接口地址是`ws://192.168.1.25:8091`，就把内容改成这个。
+2. Откройте файл `xiaozhi-esp32/main/Kconfig.projbuild`, найдите параметр `WEBSOCKET_URL` и его значение по умолчанию. Замените `wss://api.tenclass.net` на свой адрес. Например, если ваш адрес — `ws://192.168.1.25:8091`, укажите его.
 
-修改前：
+До изменения:
 
 ```
 config WEBSOCKET_URL
@@ -19,7 +18,7 @@ config WEBSOCKET_URL
         Communication with the server through websocket after wake up.
 ```
 
-修改后(示例)：
+После изменения (пример):
 
 ```
 config WEBSOCKET_URL
@@ -30,18 +29,17 @@ config WEBSOCKET_URL
         Communication with the server through websocket after wake up.
 ```
 
-注意：你的地址是`ws://`开头，不是`wss://`开头，一定不要写错了。
+Внимание: адрес должен начинаться с `ws://`, а не `wss://`. Не перепутайте!
 
-注意：你的地址是`ws://`开头，不是`wss://`开头，一定不要写错了。
+Внимание: адрес должен начинаться с `ws://`, а не `wss://`. Не перепутайте!
 
-注意：你的地址是`ws://`开头，不是`wss://`开头，一定不要写错了。
+Внимание: адрес должен начинаться с `ws://`, а не `wss://`. Не перепутайте!
 
-# 1.6.2以后固件
+# Прошивка после версии 1.6.2
 
-找到`OTA_URL`的`default`的内容，把`https://api.tenclass.net/xiaozhi/ota/`
-   改成你自己的地址，例如，我的接口地址是`http://192.168.5.165:8091/api/device/ota/`，就把内容改成这个。
+Найдите значение по умолчанию параметра `OTA_URL` и замените `https://api.tenclass.net/xiaozhi/ota/` на свой адрес. Например, если ваш адрес: `http://192.168.5.165:8091/api/device/ota/`, укажите его.
 
-修改前：
+До изменения:
 ```
 config OTA_VERSION_URL
     string "OTA Version URL"
@@ -50,7 +48,7 @@ config OTA_VERSION_URL
         The application will access this URL to check for updates.
 ```
 
-修改后(示例)：
+После изменения (пример):
 ```
 config OTA_VERSION_URL
     string "OTA Version URL"
@@ -59,60 +57,59 @@ config OTA_VERSION_URL
         The application will access this URL to check for updates.
 ```
 
-注意：你的地址是`http://`开头，不是`https://`开头，一定不要写错了。
+Внимание: адрес должен начинаться с `http://`, а не `https://`. Не перепутайте!
 
-注意：你的地址是`http://`开头，不是`https://`开头，一定不要写错了。
+Внимание: адрес должен начинаться с `http://`, а не `https://`. Не перепутайте!
 
-注意：你的地址是`http://`开头，不是`https://`开头，一定不要写错了。
+Внимание: адрес должен начинаться с `http://`, а не `https://`. Не перепутайте!
 
 
-3. 设置编译参数
+3. Настройте параметры сборки
 
 ```
-# 终端命令行进入xiaozhi-esp32的根目录
+# В терминале перейдите в корень проекта xiaozhi-esp32
 cd xiaozhi-esp32
-# 例如我使用的板子是esp32s3，所以设置编译目标为esp32s3，如果你的板子是其他型号，请替换成对应的型号
+# Например, если у вас плата esp32s3, установите целевую платформу esp32s3. Если другая — укажите соответствующую.
 idf.py set-target esp32s3
-# 进入菜单配置
+# Откройте меню конфигурации
 idf.py menuconfig
 ```
 
-进入菜单配置后，再进入`Xiaozhi Assistant`，将`BOARD_TYPE`设置你板子的具体型号
-保存退出，回到终端命令行。
+В меню конфигурации откройте раздел `Xiaozhi Assistant` и установите `BOARD_TYPE` на конкретную модель вашей платы.
+Сохраните, выйдите и вернитесь в терминал.
 
-4. 编译固件
+4. Соберите прошивку
 
 ```
 idf.py build
 ```
 
-如果是vscode安装的idf可以使用`F1`或者`ctrl+shift+p`,输入idf然后直接选择进行编译
+Если вы используете VS Code с установленным IDF — нажмите `F1` или `Ctrl+Shift+P`, введите «idf» и выберите задачу сборки.
 
-还可以直接进行烧录不用接下来的操作
+Можно сразу перейти к прошивке без выполнения следующих шагов.
 
 <img src="./images/vscode_idf.png" width="500px"/>
 
-5. 打包bin固件
+5. Упаковка прошивки (bin)
 
 ```
 cd scripts
 python release.py
 ```
 
-编译成功后，会在项目根目录下的`build`目录下生成固件文件`merged-binary.bin`。
-这个`merged-binary.bin`就是要烧录到硬件上的固件文件。
+После успешной сборки в каталоге `build` (в корне проекта) появится файл прошивки `merged-binary.bin`.
+Именно его нужно прошивать на устройство.
 
-注意：如果执行到第二命令后，报了“zip”相关的错误，请忽略这个错误，只要`build`目录下生成固件文件`merged-binary.bin`
-，对你没有太大影响，请继续。
+Примечание: если после запуска второй команды появится ошибка, связанная с «zip», её можно игнорировать — если файл `merged-binary.bin` в каталоге `build` создан, продолжайте.
 
-6. 烧录固件
-   将esp32设备连接电脑，使用chrome浏览器，打开以下网址
+6. Прошивка устройства
+   Подключите ESP32 к компьютеру, откройте браузер Chrome и перейдите по адресу
 
 ```
 https://espressif.github.io/esp-launchpad/
 ```
 
-打开这个教程，[Flash工具/Web端烧录固件（无IDF开发环境）](https://ccnphfhqs21z.feishu.cn/wiki/Zpz4wXBtdimBrLk25WdcXzxcnNS)。
-翻到：`方式二：ESP-Launchpad 浏览器WEB端烧录`，从`3. 烧录固件/下载到开发板`开始，按照教程操作。
+Откройте руководство: [Инструмент прошивки/Веб‑прошивка (без локального IDF)](https://ccnphfhqs21z.feishu.cn/wiki/Zpz4wXBtdimBrLk25WdcXzxcnNS).
+Найдите раздел: «Способ 2: ESP‑Launchpad — прошивка в браузере» и следуйте пунктам, начиная с «3. Прошивка/Загрузка на плату».
 
-烧录成功且联网成功后，通过唤醒词唤醒小智，留意server端输出的控制台信息。
+После успешной прошивки и подключения к сети разбудите ассистента ключевой фразой и следите за сообщениями в консоли сервера.

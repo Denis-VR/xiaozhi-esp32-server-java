@@ -1,22 +1,22 @@
-# 小智ESP32服务器CentOS部署文档
+# Руководство по развёртыванию сервера Xiaozhi ESP32 на CentOS
 
-## 系统要求
+## Системные требования
 
-- CentOS 7/8（推荐CentOS 8）
-- 最小化安装 + 开发工具（gcc, make等）
-- 至少2GB内存（推荐4GB）
-- 至少10GB磁盘空间
+- CentOS 7/8 (рекомендуется CentOS 8)
+- Минимальная установка + инструменты разработки (gcc, make и др.)
+- Не менее 2 ГБ ОЗУ (рекомендуется 4 ГБ)
+- Не менее 10 ГБ дискового пространства
 
-## 1. 环境准备
+## 1. Подготовка окружения
 
-### 1.1 安装基础工具
+### 1.1 Установка базовых инструментов
 
 ```bash
 sudo yum install -y epel-release
 sudo yum install -y wget curl git vim unzip
 ```
 
-### 1.2 配置防火墙
+### 1.2 Настройка файрвола
 
 ```bash
 sudo firewall-cmd --permanent --add-port=8084/tcp
@@ -25,86 +25,86 @@ sudo firewall-cmd --permanent --add-port=3306/tcp
 sudo firewall-cmd --reload
 ```
 
-## 2. 安装Java JDK 21
+## 2. Установка Java JDK 21
 
 ```bash
 sudo yum install -y java-21-openjdk java-21-openjdk-devel
 ```
 
-验证安装：
+Проверка установки:
 
 ```bash
 java -version
 ```
 
-## 3. 安装MySQL 8.0
+## 3. Установка MySQL 8.0
 
 ```bash
-# 安装MySQL 8.0存储库
+# Установка репозитория MySQL 8.0
 sudo yum localinstall -y https://dev.mysql.com/get/mysql80-community-release-el7-7.noarch.rpm
 sudo yum install -y mysql-community-server
 ```
 
-启动MySQL服务：
+Запуск MySQL:
 
 ```bash
 sudo systemctl start mysqld
 sudo systemctl enable mysqld
 ```
 
-获取临时密码：
+Получение временного пароля:
 
 ```bash
 sudo grep 'temporary password' /var/log/mysqld.log
 ```
 
-安全设置：
+Первичная настройка безопасности:
 
 ```bash
 sudo mysql_secure_installation
 ```
 
-## 4. 安装Maven
+## 4. Установка Maven
 
 ```bash
 sudo yum install -y maven
 ```
 
-验证安装：
+Проверка установки:
 
 ```bash
 mvn -v
 ```
 
-## 5. 安装Node.js 16
+## 5. Установка Node.js 16
 
 ```bash
 curl -sL https://rpm.nodesource.com/setup_16.x | sudo bash -
 sudo yum install -y nodejs
 ```
 
-验证安装：
+Проверка установки:
 
 ```bash
 node -v
 npm -v
 ```
 
-## 6. 安装FFmpeg
+## 6. Установка FFmpeg
 
 ```bash
 sudo yum install -y ffmpeg ffmpeg-devel
 ```
 
-验证安装：
+Проверка установки:
 
 ```bash
 ffmpeg -version
 ```
 
-## 7. 数据库配置
+## 7. Настройка базы данных
 
-创建数据库和用户：
+Создание базы данных и пользователя:
 
 ```sql
 mysql -u root -p
@@ -115,13 +115,13 @@ FLUSH PRIVILEGES;
 exit
 ```
 
-导入初始化脚本：
+Импорт стартового SQL‑скрипта:
 
 ```bash
 mysql -u root -p xiaozhi < db/init.sql
 ```
 
-## 8. 下载Vosk语音识别模型
+## 8. Загрузка модели распознавания речи Vosk
 
 ```bash
 wget https://alphacephei.com/vosk/models/vosk-model-cn-0.22.zip
@@ -130,23 +130,23 @@ mkdir -p models
 mv vosk-model-cn-0.22 models/vosk-model
 ```
 
-## 9. 项目部署
+## 9. Развёртывание проекта
 
-### 9.1 克隆项目
+### 9.1 Клонирование репозитория
 
 ```bash
 git clone https://github.com/joey-zhou/xiaozhi-esp32-server-java
 cd xiaozhi-esp32-server-java
 ```
 
-### 9.2 后端部署
+### 9.2 Развёртывание бэкенда
 
 ```bash
 mvn clean package -DskipTests
 java -jar target/xiaozhi.server-*.jar &（版本号可能不同）
 ```
 
-### 9.3 前端部署
+### 9.3 Сборка фронтенда
 
 ```bash
 cd web
@@ -154,17 +154,17 @@ npm install
 npm run build
 ```
 
-## 10. 配置系统服务（可选）
+## 10. Настройка системной службы (опционально)
 
-### 10.1 创建后端服务
+### 10.1 Создание systemd‑сервиса для бэкенда
 
-编辑服务文件：
+Откройте файл службы:
 
 ```bash
 sudo vim /etc/systemd/system/xiaozhi.service
 ```
 
-添加内容：
+Добавьте содержимое:
 
 ```
 [Unit]
@@ -183,7 +183,7 @@ RestartSec=10
 WantedBy=multi-user.target
 ```
 
-启动服务：
+Запуск службы:
 
 ```bash
 sudo systemctl daemon-reload
@@ -191,14 +191,14 @@ sudo systemctl start xiaozhi
 sudo systemctl enable xiaozhi
 ```
 
-### 10.2 配置Nginx（可选）
+### 10.2 Настройка Nginx (опционально)
 
 ```bash
 sudo yum install -y nginx
 sudo vim /etc/nginx/conf.d/xiaozhi.conf
 ```
 
-添加配置：
+Добавьте конфигурацию:
 
 ```
 server {
@@ -218,36 +218,36 @@ server {
 }
 ```
 
-启动Nginx：
+Запуск Nginx:
 
 ```bash
 sudo systemctl start nginx
 sudo systemctl enable nginx
 ```
 
-## 11. 访问系统
+## 11. Доступ к системе
 
-- 直接访问：`http://your_server_ip:8084`
-- 如果配置了Nginx：`http://your_domain_or_ip`
-- 默认管理员账号：admin/123456
+- Прямой доступ: `http://your_server_ip:8084`
+- Если настроен Nginx: `http://your_domain_or_ip`
+- Дефолтный админ‑аккаунт: admin/123456
 
-## 常见问题解决
+## Частые проблемы и их решение
 
-1. **MySQL初始化失败**
+1. **Сбой инициализации MySQL**
 
    ```bash
    sudo systemctl restart mysqld
    mysql_upgrade -u root -p
    ```
 
-2. **端口冲突**
+2. **Конфликт портов**
 
    ```bash
    netstat -tulnp | grep 8084
    kill -9 <PID>
    ```
 
-3. **Node.js版本问题**
+3. **Проблемы с версией Node.js**
 
    ```bash
    sudo yum remove -y nodejs npm
@@ -255,9 +255,9 @@ sudo systemctl enable nginx
    sudo yum install -y nodejs
    ```
 
-4. **内存不足**
+4. **Недостаточно памяти**
 
-   增加swap空间：
+   Увеличьте swap:
 
    ```bash
    sudo dd if=/dev/zero of=/swapfile bs=1M count=2048
@@ -266,21 +266,21 @@ sudo systemctl enable nginx
    echo '/swapfile swap swap defaults 0 0' | sudo tee -a /etc/fstab
    ```
 
-5. **Vosk模型加载失败**
+5. **Модель Vosk не загружается**
 
    ```bash
    chmod -R 755 models
    ```
 
-## 维护命令
+## Команды обслуживания
 
-- 查看后端日志：
+- Просмотр логов бэкенда:
 
   ```bash
   journalctl -u xiaozhi -f
   ```
 
-- 更新代码：
+- Обновление кода:
 
   ```bash
   git pull origin master
@@ -288,22 +288,22 @@ sudo systemctl enable nginx
   sudo systemctl restart xiaozhi
   ```
 
-- 数据库备份：
+- Резервная копия БД:
 
   ```bash
   mysqldump -u root -p xiaozhi > xiaozhi_backup_$(date +%Y%m%d).sql
   ```
 
-## 注意事项
+## Примечания
 
-1. **生产环境建议：**
-   - 修改默认密码
-   - 配置HTTPS
-   - 定期备份数据库
+1. **Рекомендации для продакшена:**
+   - Измените пароли по умолчанию
+   - Настройте HTTPS
+   - Регулярно делайте бэкапы БД
 
-2. **性能优化：**
+2. **Оптимизация производительности:**
 
-   增加JVM内存：
+   Увеличение памяти JVM:
 
    ```bash
    java -Xms512m -Xmx1024m -jar target/xiaozhi.server-*.jar（版本号可能不同）
