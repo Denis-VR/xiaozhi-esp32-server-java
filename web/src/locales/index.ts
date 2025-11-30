@@ -6,18 +6,20 @@
 import { createI18n } from 'vue-i18n'
 import zhCN from './zh-CN'
 import enUS from './en-US'
+import ruRU from "./ru-RU";
 
 // 默认语言
-const defaultLocale = localStorage.getItem('locale') || 'zh-CN'
+const defaultLocale = localStorage.getItem('locale') || 'ru-RU'
 
 // 创建 i18n 实例
 export const i18n = createI18n({
   legacy: false, // 使用 Composition API 模式
   locale: defaultLocale,
-  fallbackLocale: 'zh-CN',
+  fallbackLocale: 'ru-RU',
   messages: {
     'zh-CN': zhCN,
     'en-US': enUS,
+    'ru-RU': ruRU,
   },
 })
 

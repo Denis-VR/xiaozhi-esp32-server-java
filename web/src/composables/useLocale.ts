@@ -2,25 +2,28 @@ import { useStorage } from '@vueuse/core'
 import { computed, watch } from 'vue'
 import zhCN from 'ant-design-vue/es/locale/zh_CN'
 import enUS from 'ant-design-vue/es/locale/en_US'
+import ruRU from 'ant-design-vue/es/locale/ru_RU'
 import type { Locale } from 'ant-design-vue/es/locale'
 import { i18n } from '@/locales'
 
-export type LocaleType = 'zh-CN' | 'en-US'
+export type LocaleType = 'zh-CN' | 'en-US' | 'ru-RU'
 
 // 语言配置映射
 const localeMap: Record<LocaleType, Locale> = {
   'zh-CN': zhCN,
   'en-US': enUS,
+  'ru-RU': ruRU,
 }
 
 // 语言显示名称
 const localeNames: Record<LocaleType, string> = {
   'zh-CN': '简体中文',
   'en-US': 'English',
+  'ru-RU': 'Русский',
 }
 
 export function useLocale() {
-  const currentLocale = useStorage<LocaleType>('locale', 'zh-CN')
+  const currentLocale = useStorage<LocaleType>('locale', 'ru-RU')
 
   // 获取 Ant Design Vue 的 locale 对象
   const antdLocale = computed(() => localeMap[currentLocale.value])
@@ -30,7 +33,13 @@ export function useLocale() {
 
   // 切换语言
   const toggleLocale = () => {
-    currentLocale.value = currentLocale.value === 'zh-CN' ? 'en-US' : 'zh-CN'
+    if (currentLocale.value === 'zh-CN') {
+      currentLocale.value = 'en-US';
+    } else if (currentLocale.value === 'en-US') {
+      currentLocale.value = 'ru-RU';
+    } else {
+      currentLocale.value = 'zh-CN';
+    }
   }
 
   // 设置特定语言

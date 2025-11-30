@@ -5,7 +5,7 @@ import { useStorage } from '@vueuse/core'
 /**
  * 语言类型
  */
-export type Locale = 'zh-CN' | 'en-US'
+export type Locale = 'zh-CN' | 'en-US' | 'ru-RU'
 
 /**
  * 应用全局状态 Store
@@ -16,7 +16,7 @@ export const useAppStore = defineStore('app', () => {
   // ========== 布局管理 ==========
   // 侧边栏折叠状态
   const sidebarCollapsed = ref(false)
-  
+
   // 是否移动端
   const isMobile = ref(false)
 
@@ -70,7 +70,7 @@ export const useAppStore = defineStore('app', () => {
     setMobile,
     setNavigationStyle,
     updateScreenSize,
-    
+
     // 页面
     pageTitle,
     setPageTitle,
