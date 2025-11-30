@@ -102,7 +102,7 @@ export function useRoleManager() {
       allModels.value = models
     } catch (error) {
       console.error('加载模型列表失败:', error)
-      message.error('加载模型列表失败')
+      message.error('Failed to load model list')
     } finally {
       modelLoading.value = false
     }
@@ -165,7 +165,7 @@ export function useRoleManager() {
       allVoices.value = voices
     } catch (error) {
       console.error('加载语音列表失败:', error)
-      message.error('加载语音列表失败')
+      message.error('Failed to load voice list')
     } finally {
       voiceLoading.value = false
     }
@@ -246,7 +246,7 @@ export function useRoleManager() {
       sttOptions.value = options
     } catch (error) {
       console.error('加载语音识别配置失败:', error)
-      message.error('加载语音识别配置失败')
+      message.error('Failed to load speech recognition configuration')
     } finally {
       sttLoading.value = false
     }

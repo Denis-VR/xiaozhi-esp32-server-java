@@ -117,7 +117,7 @@ const userAvatar = computed(() => {
 // 格式化聊天消息
 const formattedChatMessages = computed<FormattedMessage[]>(() => {
   return messages.value.map(item => {
-    const content = item.sender === 'user' 
+    const content = item.sender === 'user'
       ? `${item.deviceName || '用户'} 于 ${item.createTime} 发送: ${item.message}`
       : `${item.roleName || 'AI'} 于 ${item.createTime} 回复: ${item.message}`
 
@@ -160,10 +160,10 @@ const fetchDevices = async () => {
     if (res.code === 200) {
       devices.value = res.data.list || []
     } else {
-      message.error(res.message || '获取设备列表失败')
+      message.error(res.message || 'Failed to fetch device list')
     }
   } catch (error) {
-    message.error('获取设备列表失败')
+    message.error('Failed to fetch device list')
   } finally {
     userLoading.value = false
   }
@@ -182,7 +182,7 @@ const fetchMessages = async () => {
     if (res.code === 200) {
       const messageList = res.data.list || []
       if (messageList.length === 0) {
-        message.warning('已到最后一条数据')
+        message.warning('No more data')
         isLastData.value = true
         return
       }
@@ -190,10 +190,10 @@ const fetchMessages = async () => {
       messages.value = [...messages.value, ...messageList]
       page.value++
     } else {
-      message.error(res.message || '获取消息列表失败')
+      message.error(res.message || 'Failed to fetch message list')
     }
   } catch (error) {
-    message.error('获取消息列表失败')
+    message.error('Failed to fetch message list')
   } finally {
     loading.value = false
   }
@@ -487,7 +487,7 @@ await Promise.all([
 
   .ant-card-head {
     border-bottom: 1px solid var(--border-color);
-    
+
     .ant-card-head-title {
       font-size: 16px;
       font-weight: 600;

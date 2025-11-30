@@ -140,7 +140,7 @@ export function useVerificationCode() {
         return false
       }
     } catch (error) {
-      message.error('验证失败，请稍后重试')
+      message.error('Verification failed, please try again later')
       return false
     }
   }

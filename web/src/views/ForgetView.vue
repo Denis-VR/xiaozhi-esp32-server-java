@@ -81,7 +81,7 @@ const handleVerifyEmail = async () => {
     const success = await verifyCode(formData.email, formData.verificationCode, 'forget')
     if (success) {
       isEmailVerified.value = true
-      message.success('验证成功！请设置新密码')
+      message.success('Verification successful! Please set a new password')
     }
   } finally {
     loading.value = false
