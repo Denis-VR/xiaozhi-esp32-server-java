@@ -23,7 +23,7 @@ cd xiaozhi-esp32-server-java
 ### 2. Запуск контейнеров Docker
 
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 Будут подняты три сервиса:
@@ -45,28 +45,28 @@ http://138.124.4.73:8084
 
 ```bash
 # Логи всех контейнеров
-docker-compose logs
+docker compose logs
 
 # Логи конкретного сервиса
-docker-compose logs server
-docker-compose logs node
-docker-compose logs mysql
+docker compose logs server
+docker compose logs node
+docker compose logs mysql
 
 # Режим реального времени
-docker-compose logs -f server
+docker compose logs -f server
 ```
 
 ### 5. Остановка сервисов
 
 ```bash
 # Остановить, не удаляя контейнеры
-docker-compose stop
+docker compose stop
 
 # Остановить и удалить контейнеры
-docker-compose down
+docker compose down
 
 # Остановить и удалить контейнеры и тома (данные будут удалены)
-docker-compose down -v
+docker compose down -v
 ```
 
 ## Переменные окружения
@@ -140,13 +140,13 @@ node:
 Проверьте статус контейнеров:
 
 ```bash
-docker-compose ps
+docker compose ps
 ```
 
 Посмотрите логи «падающего» сервиса:
 
 ```bash
-docker-compose logs <service_name>
+docker compose logs <service_name>
 ```
 
 ### 2. Проблемы с подключением к БД
@@ -154,13 +154,13 @@ docker-compose logs <service_name>
 Убедитесь, что healthcheck MySQL проходит:
 
 ```bash
-docker-compose ps mysql
+docker compose ps mysql
 ```
 
 Если статус не "healthy", проверьте логи MySQL:
 
 ```bash
-docker-compose logs mysql
+docker compose logs mysql
 ```
 
 Частые причины:
@@ -173,8 +173,8 @@ docker-compose logs mysql
 Если нужна чистая пересборка:
 
 ```bash
-docker-compose build --no-cache
-docker-compose up -d
+docker compose build --no-cache
+docker compose up -d
 ```
 
 ### 4. Проблемы с подключением WebSocket
@@ -186,7 +186,7 @@ docker-compose up -d
 3. В логах сервера есть попытки подключения
 
 ```bash
-docker-compose logs server
+docker compose logs server
 ```
 
 ## Обновление приложения
@@ -198,6 +198,6 @@ docker-compose logs server
 git pull
 
 # Пересобрать и запустить контейнеры
-docker-compose build
-docker-compose up -d
+docker compose build
+docker compose up -d
 ```
