@@ -2,6 +2,7 @@ package com.xiaozhi.dialogue.stt.providers;
 
 import com.xiaozhi.dialogue.stt.SttService;
 import com.xiaozhi.entity.SysConfig;
+import com.xiaozhi.utils.AudioUtils;
 import com.xiaozhi.utils.HttpUtil;
 import com.xiaozhi.utils.JsonUtil;
 import lombok.AllArgsConstructor;
@@ -44,7 +45,9 @@ public class GoogleSttService implements SttService {
     @Override
     public String recognition(byte[] audioData) {
         var params = new GoogleSttParams();
-        params.setConfig(new GoogleSttParams.RecognitionConfig("LINEAR16", 16000, "ru-RU"));
+        // Google REST API expects raw PCM if encoding is LINEAR16, but sampleRate must match
+        // Our AudioUtils.SAMPLE_RATE is 16000
+        params.setConfig(new GoogleSttParams.RecognitionConfig("LINEAR16", AudioUtils.SAMPLE_RATE, "ru-RU"));
         params.setAudio(new GoogleSttParams.RecognitionAudio(Base64.getEncoder().encodeToString(audioData)));
 
         var request = new Request.Builder()
@@ -59,10 +62,12 @@ public class GoogleSttService implements SttService {
                 GoogleSttResp googleSttResp = JsonUtil.fromJson(responseBody, GoogleSttResp.class);
                 if (googleSttResp != null && googleSttResp.getResults() != null && !googleSttResp.getResults().isEmpty()) {
                     return googleSttResp.getResults().get(0).getAlternatives().get(0).getTranscript();
+                } else {
+                    log.warn("Google STT returned no results. Body: {}", responseBody);
                 }
             } else {
                 String errorMsg = resp.body() != null ? resp.body().string() : "Empty response";
-                log.error("Google STT failed: {}", errorMsg);
+                log.error("Google STT failed: {} - Status: {}", errorMsg, resp.code());
             }
         } catch (IOException e) {
             log.error("Error sending Google STT request", e);

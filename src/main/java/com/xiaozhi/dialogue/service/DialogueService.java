@@ -414,12 +414,50 @@ public class DialogueService{
                 session.setUserTimeMillis(userTimeMillis);
 
                 final String finalText;
-                if (sessionManager.getAudioStream(sessionId) != null) {
-                    finalText = sttService.streamRecognition(sessionManager.getAudioStream(sessionId));
-                    if (!StringUtils.hasText(finalText)) {
+                if (sttService.supportsStreaming()) {
+                    if (sessionManager.getAudioStream(sessionId) != null) {
+                        finalText = sttService.streamRecognition(sessionManager.getAudioStream(sessionId));
+                    } else {
+                        logger.error("音频流不存在，无法进行流式识别 - SessionId: {}", sessionId);
                         return;
                     }
                 } else {
+                    // 如果不支持流式，等待语音结束并获取完整音频
+                    // 订阅Sink直到完成
+                    final CompletableFuture<byte[]> audioFuture = new CompletableFuture<>();
+                    final List<byte[]> audioChunks = new ArrayList<>();
+                    
+                    if (sessionManager.getAudioStream(sessionId) != null) {
+                        sessionManager.getAudioStream(sessionId).asFlux().subscribe(
+                            data -> audioChunks.add(data),
+                            error -> audioFuture.completeExceptionally(error),
+                            () -> {
+                                int totalSize = audioChunks.stream().mapToInt(b -> b.length).sum();
+                                byte[] allData = new byte[totalSize];
+                                int offset = 0;
+                                for (byte[] chunk : audioChunks) {
+                                    System.arraycopy(chunk, 0, allData, offset, chunk.length);
+                                    offset += chunk.length;
+                                }
+                                audioFuture.complete(allData);
+                            }
+                        );
+                        
+                        try {
+                            byte[] fullAudio = audioFuture.get(90, TimeUnit.SECONDS);
+                            finalText = sttService.recognition(fullAudio);
+                        } catch (Exception e) {
+                            logger.error("获取完整音频进行非流式识别失败: {}", e.getMessage());
+                            return;
+                        }
+                    } else {
+                        logger.error("音频流不存在，无法进行非流式识别 - SessionId: {}", sessionId);
+                        return;
+                    }
+                }
+
+                if (!StringUtils.hasText(finalText)) {
+                    logger.warn("识别结果为空 - SessionId: {}", sessionId);
                     return;
                 }
 

@@ -105,9 +105,48 @@ public class AudioUtils {
     public static String saveAsWav(byte[] audio) {
         String uuid = UUID.randomUUID().toString().replace("-", "");
         String fileName = uuid + ".wav";
-        Path path = Path.of(AUDIO_PATH , fileName);
+        Path path = Path.of(AUDIO_PATH, fileName);
         saveAsWav(path, audio);
         return fileName;
+    }
+
+    /**
+     * 将PCM数据转换为WAV格式的字节数组
+     */
+    public static byte[] pcmToWavBytes(byte[] pcmData) {
+        int bitsPerSample = 16;
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        DataOutputStream dos = new DataOutputStream(baos);
+
+        try {
+            // RIFF头
+            dos.writeBytes("RIFF");
+            dos.writeInt(Integer.reverseBytes(36 + pcmData.length));
+            dos.writeBytes("WAVE");
+
+            // fmt子块
+            dos.writeBytes("fmt ");
+            dos.writeInt(Integer.reverseBytes(16));
+            dos.writeShort(Short.reverseBytes((short) 1));
+            dos.writeShort(Short.reverseBytes((short) CHANNELS));
+            dos.writeInt(Integer.reverseBytes(SAMPLE_RATE));
+            dos.writeInt(Integer.reverseBytes(SAMPLE_RATE * CHANNELS * bitsPerSample / 8));
+            dos.writeShort(Short.reverseBytes((short) (CHANNELS * bitsPerSample / 8)));
+            dos.writeShort(Short.reverseBytes((short) bitsPerSample));
+
+            // data子块
+            dos.writeBytes("data");
+            dos.writeInt(Integer.reverseBytes(pcmData.length));
+
+            // 音频数据
+            dos.write(pcmData);
+
+            dos.flush();
+            return baos.toByteArray();
+        } catch (IOException e) {
+            logger.error("PCM转WAV字节数组失败", e);
+            return pcmData;
+        }
     }
     /**
      * 将原始音频数据保存为WAV文件

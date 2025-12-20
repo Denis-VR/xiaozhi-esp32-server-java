@@ -2,6 +2,7 @@ package com.xiaozhi.dialogue.stt.providers;
 
 import com.xiaozhi.dialogue.stt.SttService;
 import com.xiaozhi.entity.SysConfig;
+import com.xiaozhi.utils.AudioUtils;
 import com.xiaozhi.utils.HttpUtil;
 import com.xiaozhi.utils.JsonUtil;
 import lombok.Data;
@@ -37,10 +38,13 @@ public class OpenAiSttService implements SttService {
 
     @Override
     public String recognition(byte[] audioData) {
+        // Convert PCM to WAV for OpenAI
+        byte[] wavData = AudioUtils.pcmToWavBytes(audioData);
+
         RequestBody requestBody = new MultipartBody.Builder()
                 .setType(MultipartBody.FORM)
                 .addFormDataPart("file", "audio.wav",
-                        RequestBody.create(audioData, MediaType.parse("audio/wav")))
+                        RequestBody.create(wavData, MediaType.parse("audio/wav")))
                 .addFormDataPart("model", model)
                 .addFormDataPart("language", "ru")
                 .build();
@@ -58,7 +62,7 @@ public class OpenAiSttService implements SttService {
                 return resp != null ? resp.getText() : "";
             } else {
                 String errorMsg = response.body() != null ? response.body().string() : "Empty response";
-                log.error("OpenAI STT failed: {}", errorMsg);
+                log.error("OpenAI STT failed: {} - Status: {}", errorMsg, response.code());
             }
         } catch (IOException e) {
             log.error("Error sending OpenAI STT request", e);
