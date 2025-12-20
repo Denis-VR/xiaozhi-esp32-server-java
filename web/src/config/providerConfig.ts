@@ -1047,40 +1047,42 @@ export const configTypeMap: Record<string, ConfigTypeInfo> = {
       { label: 'Aliyun（DashScope）', value: 'aliyun', key: '1' },
       { label: 'Aliyun（NLS标准版）', value: 'aliyun-nls', key: '2' },
       { label: 'Xfyun', value: 'xfyun', key: '3' },
-      { label: 'FunASR', value: 'funasr', key: '4' }
+      { label: 'FunASR', value: 'funasr', key: '4' },
+      { label: 'OpenAI', value: 'openai', key: '5' },
+      { label: 'Google', value: 'google', key: '6' }
     ],
     typeFields: {
       tencent: [
-        { 
-          name: 'appId', 
-          label: 'App Id', 
-          required: true, 
+        {
+          name: 'appId',
+          label: 'App Id',
+          required: true,
           span: 12,
           help: '在 https://console.cloud.tencent.com/cam/capi 申请',
           placeholder: 'your-app-id'
         },
-        { 
-          name: 'apiKey', 
-          label: 'Secret Id', 
-          required: true, 
+        {
+          name: 'apiKey',
+          label: 'Secret Id',
+          required: true,
           span: 12,
           help: '腾讯云API密钥ID',
           placeholder: 'your-secret-id'
         },
-        { 
-          name: 'apiSecret', 
-          label: 'Secret Key', 
-          required: true, 
+        {
+          name: 'apiSecret',
+          label: 'Secret Key',
+          required: true,
           span: 12,
           help: '腾讯云API密钥Key',
           placeholder: 'your-secret-key'
         },
       ],
       aliyun: [
-        { 
-          name: 'apiKey', 
-          label: 'App Key', 
-          required: true, 
+        {
+          name: 'apiKey',
+          label: 'App Key',
+          required: true,
           span: 12,
           help: '在 https://bailian.console.aliyun.com/?apiKey=1#/api-key 申请',
           placeholder: 'your-app-key'
@@ -1114,40 +1116,89 @@ export const configTypeMap: Record<string, ConfigTypeInfo> = {
         }
       ],
       xfyun: [
-        { 
-          name: 'appId', 
-          label: 'App Id', 
-          required: true, 
+        {
+          name: 'appId',
+          label: 'App Id',
+          required: true,
           span: 12,
           help: '在 https://console.xfyun.cn/ 申请讯飞开放平台AppID',
           placeholder: 'your-app-id'
         },
-        { 
-          name: 'apiSecret', 
-          label: 'Api Secret', 
-          required: true, 
+        {
+          name: 'apiSecret',
+          label: 'Api Secret',
+          required: true,
           span: 12,
           help: '讯飞开放平台API Secret',
           placeholder: 'your-api-secret'
         },
-        { 
-          name: 'apiKey', 
-          label: 'Api Key', 
-          required: true, 
+        {
+          name: 'apiKey',
+          label: 'Api Key',
+          required: true,
           span: 12,
           help: '讯飞开放平台API Key',
           placeholder: 'your-api-key'
         }
       ],
       funasr: [
-        { 
-          name: 'apiUrl', 
-          label: 'Websocket URL', 
-          required: true, 
-          span: 12, 
+        {
+          name: 'apiUrl',
+          label: 'Websocket URL',
+          required: true,
+          span: 12,
           defaultUrl: "ws://127.0.0.1:10095",
           help: '本地FunASR服务WebSocket地址，需要先部署FunASR服务',
           placeholder: 'ws://127.0.0.1:10095'
+        }
+      ],
+      openai: [
+        {
+          name: 'apiKey',
+          label: 'API Key',
+          required: true,
+          inputType: 'password',
+          placeholder: 'sk-...',
+          span: 12,
+          help: '在 https://platform.openai.com/api-keys 申请'
+        },
+        {
+          name: 'apiUrl',
+          label: 'API URL',
+          required: false,
+          inputType: 'text',
+          placeholder: 'https://api.openai.com/v1/audio/transcriptions',
+          span: 12,
+          help: 'OpenAI Whisper API 接口地址'
+        },
+        {
+          name: 'appId',
+          label: 'Model',
+          required: false,
+          inputType: 'text',
+          placeholder: 'whisper-1',
+          span: 12,
+          help: '使用的模型名称，默认为 whisper-1'
+        }
+      ],
+      google: [
+        {
+          name: 'apiKey',
+          label: 'API Key',
+          required: true,
+          inputType: 'password',
+          placeholder: 'your-api-key',
+          span: 12,
+          help: '在 https://console.cloud.google.com/apis/credentials 申请'
+        },
+        {
+          name: 'apiUrl',
+          label: 'API URL',
+          required: false,
+          inputType: 'text',
+          placeholder: 'https://speech.googleapis.com/v1/speech:recognize',
+          span: 12,
+          help: 'Google Speech-to-Text API 接口地址'
         }
       ]
     }
@@ -1159,14 +1210,16 @@ export const configTypeMap: Record<string, ConfigTypeInfo> = {
       { label: 'Aliyun NLS', value: 'aliyun-nls', key: '1' },
       { label: 'Volcengine(doubao)', value: 'volcengine', key: '2' },
       { label: 'Xfyun', value: 'xfyun', key: '3' },
-      { label: 'Minimax', value: 'minimax', key: '4' }
+      { label: 'Minimax', value: 'minimax', key: '4' },
+      { label: 'OpenAI', value: 'openai', key: '5' },
+      { label: 'Google', value: 'google', key: '6' }
     ],
     typeFields: {
       aliyun: [
-        { 
-          name: 'apiKey', 
-          label: 'API Key', 
-          required: true, 
+        {
+          name: 'apiKey',
+          label: 'API Key',
+          required: true,
           span: 12,
           help: '在 https://bailian.console.aliyun.com/?apiKey=1#/api-key 申请',
           placeholder: 'your-api-key'
@@ -1200,67 +1253,116 @@ export const configTypeMap: Record<string, ConfigTypeInfo> = {
         }
       ],
       volcengine: [
-        { 
-          name: 'appId', 
-          label: 'App Id', 
-          required: true, 
+        {
+          name: 'appId',
+          label: 'App Id',
+          required: true,
           span: 12,
           help: '在 https://console.volcengine.com/speech/app 申请',
           placeholder: 'your-app-id'
         },
-        { 
-          name: 'apiKey', 
-          label: 'Access Token', 
-          required: true, 
+        {
+          name: 'apiKey',
+          label: 'Access Token',
+          required: true,
           span: 12,
           help: '火山引擎语音合成服务访问令牌',
           placeholder: 'your-access-token'
         }
       ],
       xfyun: [
-        { 
-          name: 'appId', 
-          label: 'App Id', 
-          required: true, 
+        {
+          name: 'appId',
+          label: 'App Id',
+          required: true,
           span: 12,
           help: '在 https://console.xfyun.cn/ 申请讯飞开放平台AppID',
           placeholder: 'your-app-id'
         },
-        { 
-          name: 'apiSecret', 
-          label: 'Api Secret', 
-          required: true, 
+        {
+          name: 'apiSecret',
+          label: 'Api Secret',
+          required: true,
           span: 12,
           help: '讯飞开放平台API Secret',
           placeholder: 'your-api-secret'
         },
-        { 
-          name: 'apiKey', 
-          label: 'Api Key', 
-          required: true, 
+        {
+          name: 'apiKey',
+          label: 'Api Key',
+          required: true,
           span: 12,
           help: '讯飞开放平台API Key',
           placeholder: 'your-api-key'
         }
       ],
       minimax: [
-        { 
-          name: 'appId', 
-          label: 'Group Id', 
-          required: true, 
+        {
+          name: 'appId',
+          label: 'Group Id',
+          required: true,
           span: 12,
           help: '在 https://platform.minimaxi.com/user-center/basic-information 获取',
           placeholder: 'your-group-id'
         },
-        { 
-          name: 'apiKey', 
-          label: 'API Key', 
-          required: true, 
+        {
+          name: 'apiKey',
+          label: 'API Key',
+          required: true,
           span: 12,
           help: '在 https://platform.minimaxi.com/user-center/basic-information/interface-key 申请',
           placeholder: 'your-api-key'
         }
       ],
+      openai: [
+        {
+          name: 'apiKey',
+          label: 'API Key',
+          required: true,
+          inputType: 'password',
+          placeholder: 'sk-...',
+          span: 12,
+          help: '在 https://platform.openai.com/api-keys 申请'
+        },
+        {
+          name: 'apiUrl',
+          label: 'API URL',
+          required: false,
+          inputType: 'text',
+          placeholder: 'https://api.openai.com/v1/audio/speech',
+          span: 12,
+          help: 'OpenAI TTS API 接口地址'
+        },
+        {
+          name: 'appId',
+          label: 'Model',
+          required: false,
+          inputType: 'text',
+          placeholder: 'tts-1',
+          span: 12,
+          help: '使用的模型名称，默认为 tts-1'
+        }
+      ],
+      google: [
+        {
+          name: 'apiKey',
+          label: 'API Key',
+          required: true,
+          inputType: 'password',
+          placeholder: 'your-api-key',
+          span: 12,
+          help: '在 https://console.cloud.google.com/apis/credentials 申请'
+        },
+        {
+          name: 'apiUrl',
+          label: 'API URL',
+          required: false,
+          inputType: 'text',
+          placeholder: 'https://texttospeech.googleapis.com/v1/text:synthesize',
+          span: 12,
+          help: 'Google TTS API 接口地址'
+        }
+      ]
     }
   }
 };

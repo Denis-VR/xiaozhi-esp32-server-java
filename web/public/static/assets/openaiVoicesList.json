@@ -1,0 +1,8 @@
+[
+  { "label": "Alloy", "value": "alloy", "gender": "male" },
+  { "label": "Echo", "value": "echo", "gender": "male" },
+  { "label": "Fable", "value": "fable", "gender": "male" },
+  { "label": "Onyx", "value": "onyx", "gender": "male" },
+  { "label": "Nova", "value": "nova", "gender": "female" },
+  { "label": "Shimmer", "value": "shimmer", "gender": "female" }
+]

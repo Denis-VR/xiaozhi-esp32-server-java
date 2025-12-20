@@ -1,0 +1,10 @@
+[
+  { "label": "Russian - Wavenet A", "value": "ru-RU-Wavenet-A", "gender": "female" },
+  { "label": "Russian - Wavenet B", "value": "ru-RU-Wavenet-B", "gender": "male" },
+  { "label": "Russian - Wavenet C", "value": "ru-RU-Wavenet-C", "gender": "female" },
+  { "label": "Russian - Wavenet D", "value": "ru-RU-Wavenet-D", "gender": "male" },
+  { "label": "Russian - Standard A", "value": "ru-RU-Standard-A", "gender": "female" },
+  { "label": "Russian - Standard B", "value": "ru-RU-Standard-B", "gender": "male" },
+  { "label": "Russian - Standard C", "value": "ru-RU-Standard-C", "gender": "female" },
+  { "label": "Russian - Standard D", "value": "ru-RU-Standard-D", "gender": "male" }
+]

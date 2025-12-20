@@ -6,7 +6,7 @@
 export type ModelType = 'llm' | 'agent'
 
 // 语音提供商类型
-export type VoiceProvider = 'edge' | 'aliyun' | 'aliyun-nls' | 'volcengine' | 'xfyun' | 'minimax'
+export type VoiceProvider = 'edge' | 'aliyun' | 'aliyun-nls' | 'volcengine' | 'xfyun' | 'minimax' | 'openai' | 'google'
 
 // 语音性别
 export type VoiceGender = '' | 'male' | 'female'
