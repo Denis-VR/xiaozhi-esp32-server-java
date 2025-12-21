@@ -216,7 +216,16 @@ public class ChatModelFactory {
                         .clientConnector(new JdkClientHttpConnector(HttpClient.newBuilder()
                                 .version(HttpClient.Version.HTTP_1_1)
                                 .connectTimeout(Duration.ofSeconds(30))
-                                .build())))
+                                .build()))
+                        // Добавляем логирование запросов
+                        .filter((request, next) -> {
+                            logger.info("HTTP Request: {} {}", request.method(), request.url());
+                            if (request.body() != null) {
+                                // Логируем тело запроса если возможно
+                                logger.debug("HTTP Request body present");
+                            }
+                            return next.exchange(request);
+                        }))
                 .restClientBuilder(RestClient.builder()
                         // Force HTTP/1.1 for non-streaming
                         .requestFactory(new JdkClientHttpRequestFactory(HttpClient.newBuilder()
