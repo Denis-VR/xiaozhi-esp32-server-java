@@ -400,9 +400,48 @@ public class ChatService {
                                 streamListener.onComplete(toolName.toString(), llmUsage.get());
                             });
         } catch (Exception e) {
-            logger.error("Ошибка при обработке LLM: {}", e.getMessage(), e);
-            // 发送错误信号
-            sentenceHandler.accept("Извините, я столкнулся с проблемой при обработке вашего запроса.", true, true);
+            String errorMessage = "Извините, я столкнулся с проблемой при обработке вашего запроса.";
+            
+            // Извлекаем детальное сообщение об ошибке из WebClientResponseException
+            if (e instanceof org.springframework.web.reactive.function.client.WebClientResponseException webClientException) {
+                try {
+                    String responseBody = webClientException.getResponseBodyAsString();
+                    if (responseBody != null && !responseBody.isEmpty()) {
+                        // Пытаемся извлечь сообщение об ошибке из JSON ответа
+                        try {
+                            com.fasterxml.jackson.databind.ObjectMapper objectMapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                            com.fasterxml.jackson.databind.JsonNode jsonNode = objectMapper.readTree(responseBody);
+                            if (jsonNode.has("error")) {
+                                com.fasterxml.jackson.databind.JsonNode errorNode = jsonNode.get("error");
+                                if (errorNode.has("message")) {
+                                    String apiErrorMessage = errorNode.get("message").asText();
+                                    logger.error("Ошибка API: {}", apiErrorMessage);
+                                    errorMessage = "Ошибка модели: " + apiErrorMessage + ". Пожалуйста, проверьте настройки модели или используйте другую модель.";
+                                } else if (errorNode.has("type")) {
+                                    String errorType = errorNode.get("type").asText();
+                                    logger.error("Тип ошибки API: {}", errorType);
+                                    errorMessage = "Ошибка модели: " + errorType + ". Пожалуйста, проверьте настройки модели.";
+                                }
+                            } else {
+                                logger.error("Тело ответа с ошибкой: {}", responseBody);
+                            }
+                        } catch (Exception parseException) {
+                            logger.error("Не удалось разобрать ответ об ошибке: {}", responseBody);
+                            errorMessage = "Ошибка API: " + webClientException.getStatusCode() + ". Пожалуйста, проверьте настройки модели.";
+                        }
+                    } else {
+                        logger.error("Ошибка при обработке LLM: {} - {}", webClientException.getStatusCode(), webClientException.getMessage());
+                        errorMessage = "Ошибка API: " + webClientException.getStatusCode() + ". Пожалуйста, проверьте настройки модели.";
+                    }
+                } catch (Exception ex) {
+                    logger.error("Ошибка при извлечении деталей ошибки: {}", ex.getMessage(), ex);
+                }
+            } else {
+                logger.error("Ошибка при обработке LLM: {}", e.getMessage(), e);
+            }
+            
+            // Отправляем ошибку пользователю
+            sentenceHandler.accept(errorMessage, true, true);
         }
     }
 
@@ -599,10 +638,48 @@ public class ChatService {
 
         @Override
         public void onError(Throwable e) {
-            logger.error("Ошибка потокового ответа: {}", e.getMessage(), e);
-            // 发送错误信号
-            sentenceHandler.accept("Извините, я столкнулся с проблемой при обработке вашего запроса.", true, true);
-
+            String errorMessage = "Извините, я столкнулся с проблемой при обработке вашего запроса.";
+            
+            // Извлекаем детальное сообщение об ошибке из WebClientResponseException
+            if (e instanceof org.springframework.web.reactive.function.client.WebClientResponseException webClientException) {
+                try {
+                    String responseBody = webClientException.getResponseBodyAsString();
+                    if (responseBody != null && !responseBody.isEmpty()) {
+                        // Пытаемся извлечь сообщение об ошибке из JSON ответа
+                        try {
+                            com.fasterxml.jackson.databind.ObjectMapper objectMapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                            com.fasterxml.jackson.databind.JsonNode jsonNode = objectMapper.readTree(responseBody);
+                            if (jsonNode.has("error")) {
+                                com.fasterxml.jackson.databind.JsonNode errorNode = jsonNode.get("error");
+                                if (errorNode.has("message")) {
+                                    String apiErrorMessage = errorNode.get("message").asText();
+                                    logger.error("Ошибка API: {}", apiErrorMessage);
+                                    errorMessage = "Ошибка модели: " + apiErrorMessage + ". Пожалуйста, проверьте настройки модели или используйте другую модель.";
+                                } else if (errorNode.has("type")) {
+                                    String errorType = errorNode.get("type").asText();
+                                    logger.error("Тип ошибки API: {}", errorType);
+                                    errorMessage = "Ошибка модели: " + errorType + ". Пожалуйста, проверьте настройки модели.";
+                                }
+                            } else {
+                                logger.error("Тело ответа с ошибкой: {}", responseBody);
+                            }
+                        } catch (Exception parseException) {
+                            logger.error("Не удалось разобрать ответ об ошибке: {}", responseBody);
+                            errorMessage = "Ошибка API: " + webClientException.getStatusCode() + ". Пожалуйста, проверьте настройки модели.";
+                        }
+                    } else {
+                        logger.error("Ошибка потокового ответа: {} - {}", webClientException.getStatusCode(), webClientException.getMessage());
+                        errorMessage = "Ошибка API: " + webClientException.getStatusCode() + ". Пожалуйста, проверьте настройки модели.";
+                    }
+                } catch (Exception ex) {
+                    logger.error("Ошибка при извлечении деталей ошибки: {}", ex.getMessage(), ex);
+                }
+            } else {
+                logger.error("Ошибка потокового ответа: {}", e.getMessage(), e);
+            }
+            
+            // Отправляем ошибку пользователю
+            sentenceHandler.accept(errorMessage, true, true);
         }
     };
 }
