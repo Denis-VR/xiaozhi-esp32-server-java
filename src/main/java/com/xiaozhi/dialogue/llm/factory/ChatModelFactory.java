@@ -75,6 +75,22 @@ public class ChatModelFactory {
         SysConfig config = configService.selectConfigById(modelId);
         return createChatModel(config, role);
     }
+    
+    /**
+     * Получить имя модели из конфигурации для сессии
+     * @param session сессия чата
+     * @return имя модели
+     */
+    public String getModelName(ChatSession session) {
+        SysDevice device = session.getSysDevice();
+        SysRole role = roleService.selectRoleById(device.getRoleId());
+        Integer modelId = role.getModelId();
+        if (modelId == null) {
+            return null;
+        }
+        SysConfig config = configService.selectConfigById(modelId);
+        return config != null ? config.getConfigName() : null;
+    }
 
     public ChatModel takeVisionModel() {
         SysConfig config = configService.selectModelType(SysConfig.ModelType.vision.getValue());
@@ -123,6 +139,18 @@ public class ChatModelFactory {
         Double temperature = role.getTemperature();
         Double topP = role.getTopP();
         provider = provider.toLowerCase();
+        
+        // Логирование для отладки
+        logger.debug("Создание ChatModel - Provider: {}, Model: {}, Endpoint: {}, ConfigId: {}", 
+                provider, model, endpoint, config.getConfigId());
+        
+        // Проверка обязательных полей
+        if (!StringUtils.hasText(model)) {
+            logger.error("Модель не указана в конфигурации! ConfigId: {}, Provider: {}, ConfigName: {}", 
+                    config.getConfigId(), provider, config.getConfigName());
+            throw new IllegalArgumentException("Модель не может быть пустой. Пожалуйста, укажите имя модели (configName) в настройках конфигурации.");
+        }
+        
         // Coze和Dify 拥有全局唯一配置，所以需要查询唯一配置信息来作为模型的 Token 获取
         SysConfig agentConfig = new SysConfig().setConfigType("agent").setUserId(config.getUserId());
         SysConfig queryConfig;
@@ -163,6 +191,17 @@ public class ChatModelFactory {
     }
 
     private ChatModel newOpenAiChatModel(String endpoint, String appId, String apiKey, String apiSecret, String model, Double temperature, Double topP) {
+        // Проверка и валидация параметров
+        if (!StringUtils.hasText(model)) {
+            logger.error("Модель не указана! configName пустое или null. Endpoint: {}", endpoint);
+            throw new IllegalArgumentException("Модель не может быть пустой. Пожалуйста, укажите имя модели в настройках конфигурации.");
+        }
+        
+        if (!StringUtils.hasText(endpoint)) {
+            logger.warn("Endpoint не указан, используется значение по умолчанию: https://api.openai.com");
+            endpoint = "https://api.openai.com";
+        }
+        
         MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
         headers.add("Content-Type", "application/json");
 
@@ -194,13 +233,20 @@ public class ChatModelFactory {
                 .maxTokens(2000)
                 .streamUsage(true)
                 .build();
+        
+        // Дополнительная проверка, что модель действительно установлена
+        if (!StringUtils.hasText(openAiChatOptions.getModel())) {
+            logger.error("Модель не установлена в OpenAiChatOptions! Исходное значение model: {}", model);
+            throw new IllegalStateException("Модель не может быть пустой в OpenAiChatOptions");
+        }
 
         var chatModel = OpenAiChatModel.builder()
                 .openAiApi(openAiApi)
                 .defaultOptions(openAiChatOptions)
                 .toolCallingManager(toolCallingManager)
                 .build();
-        logger.info("Using OpenAi model: {}", model);
+        logger.info("Using OpenAi model: {}, endpoint: {}, model in options: {}", 
+                model, endpoint, openAiChatOptions.getModel());
         return chatModel;
     }
 
