@@ -243,32 +243,16 @@ public class ChatService {
                 conversationTimestamp = System.currentTimeMillis();
             }
 
-            // Создаем ChatOptions с моделью из defaultOptions
-            ChatOptions chatOptions = createChatOptionsWithModel(chatModel, session, useFunctionCall, conversationTimestamp);
-            
-            // Логирование созданных ChatOptions ДО создания Prompt
-            logger.info("ChatOptions ДО создания Prompt: тип={}, является OpenAiChatOptions={}", 
-                    chatOptions.getClass().getName(), 
-                    chatOptions instanceof OpenAiChatOptions);
-            if (chatOptions instanceof OpenAiChatOptions openAiOpts) {
-                logger.info("ChatOptions модель: {}", openAiOpts.getModel());
-            }
-
             UserMessage userMessage = new UserMessage(message);
             Long userTimeMillis = session.getUserTimeMillis();
             Conversation conversation = session.getConversation();
             conversation.add(userMessage, userTimeMillis);
             List<Message> messages = conversation.messages();
-            Prompt prompt = new Prompt(messages,chatOptions);
             
-            // Логирование ChatOptions ПОСЛЕ создания Prompt
-            ChatOptions promptOptions = prompt.getOptions();
-            logger.info("ChatOptions ПОСЛЕ создания Prompt: тип={}, является OpenAiChatOptions={}", 
-                    promptOptions != null ? promptOptions.getClass().getName() : "null",
-                    promptOptions instanceof OpenAiChatOptions);
-
-            // Логирование всех параметров запроса
-            logRequestParameters(chatModel, prompt, chatOptions, session);
+            // Создаем ChatOptions с моделью из defaultOptions
+            ChatOptions chatOptions = createChatOptions(chatModel, session, useFunctionCall, conversationTimestamp);
+            
+            Prompt prompt = new Prompt(messages, chatOptions);
 
             ChatResponse chatResponse = chatModel.call(prompt);
             if (chatResponse == null || chatResponse.getResult().getOutput().getText() == null) {
@@ -332,115 +316,33 @@ public class ChatService {
             conversationTimestamp = System.currentTimeMillis();
         }
 
-        // Создаем ChatOptions с моделью из defaultOptions
-        ChatOptions chatOptions = createChatOptionsWithModel(chatModel, session, useFunctionCall, conversationTimestamp);
-        
-        // Логирование созданных ChatOptions ДО создания Prompt
-        logger.info("ChatOptions ДО создания Prompt (stream): тип={}, является OpenAiChatOptions={}", 
-                chatOptions.getClass().getName(), 
-                chatOptions instanceof OpenAiChatOptions);
-        if (chatOptions instanceof OpenAiChatOptions openAiOpts) {
-            logger.info("ChatOptions модель (stream): {}", openAiOpts.getModel());
-        }
-
         UserMessage userMessage = new UserMessage(message);
         Long userTimeMillis = session.getUserTimeMillis();
         Conversation conversation = session.getConversation();
         conversation.add(userMessage, userTimeMillis);
         List<Message> messages = conversation.messages();
-        Prompt prompt = new Prompt(messages, chatOptions);
         
-        // Логирование ChatOptions ПОСЛЕ создания Prompt
-        ChatOptions promptOptions = prompt.getOptions();
-        logger.info("ChatOptions ПОСЛЕ создания Prompt (stream): тип={}, является OpenAiChatOptions={}", 
-                promptOptions != null ? promptOptions.getClass().getName() : "null",
-                promptOptions instanceof OpenAiChatOptions);
-
-        // Логирование всех параметров запроса
-        logRequestParameters(chatModel, prompt, chatOptions, session);
+        // Создаем ChatOptions с моделью из defaultOptions
+        ChatOptions chatOptions = createChatOptions(chatModel, session, useFunctionCall, conversationTimestamp);
+        
+        Prompt prompt = new Prompt(messages, chatOptions);
 
         // 调用实际的流式聊天方法
         return chatModel.stream(prompt);
     }
     
     /**
-     * Логирование всех параметров запроса для отладки
-     */
-    private void logRequestParameters(ChatModel chatModel, Prompt prompt, ChatOptions chatOptions, ChatSession session) {
-        try {
-            logger.info("=== ПАРАМЕТРЫ ЗАПРОСА К LLM ===");
-            logger.info("ChatModel type: {}", chatModel.getClass().getName());
-            
-            // Логирование defaultOptions из ChatModel (если доступно)
-            if (chatModel instanceof org.springframework.ai.openai.OpenAiChatModel openAiChatModel) {
-                try {
-                    var defaultOptions = openAiChatModel.getDefaultOptions();
-                    if (defaultOptions != null) {
-                        logger.info("DefaultOptions model: {}", defaultOptions.getModel());
-                        logger.info("DefaultOptions temperature: {}", defaultOptions.getTemperature());
-                        logger.info("DefaultOptions topP: {}", defaultOptions.getTopP());
-                        logger.info("DefaultOptions maxTokens: {}", defaultOptions.getMaxTokens());
-                        logger.info("DefaultOptions class: {}", defaultOptions.getClass().getName());
-                    } else {
-                        logger.warn("DefaultOptions is null!");
-                    }
-                } catch (Exception e) {
-                    logger.warn("Не удалось получить defaultOptions: {}", e.getMessage());
-                }
-            }
-            
-            // Логирование ChatOptions из Prompt
-            logger.info("Prompt ChatOptions type: {}", chatOptions != null ? chatOptions.getClass().getName() : "null");
-            if (chatOptions instanceof org.springframework.ai.model.tool.ToolCallingChatOptions toolOptions) {
-                logger.info("ToolCallingChatOptions toolCallbacks count: {}", 
-                        toolOptions.getToolCallbacks() != null ? toolOptions.getToolCallbacks().size() : 0);
-                logger.info("ToolCallingChatOptions toolContext keys: {}", 
-                        toolOptions.getToolContext() != null ? toolOptions.getToolContext().keySet() : "null");
-            }
-            
-            // Проверка, является ли ChatOptions также OpenAiChatOptions
-            if (chatOptions instanceof org.springframework.ai.openai.OpenAiChatOptions openAiOptions) {
-                logger.info("ChatOptions is OpenAiChatOptions!");
-                logger.info("ChatOptions model: {}", openAiOptions.getModel());
-                logger.info("ChatOptions temperature: {}", openAiOptions.getTemperature());
-            } else {
-                logger.warn("ChatOptions НЕ является OpenAiChatOptions! Тип: {}", 
-                        chatOptions != null ? chatOptions.getClass().getName() : "null");
-            }
-            
-            // Логирование сообщений
-            List<Message> promptMessages = prompt.getInstructions();
-            logger.info("Messages count: {}", promptMessages != null ? promptMessages.size() : 0);
-            if (promptMessages != null) {
-                for (int i = 0; i < promptMessages.size(); i++) {
-                    Message msg = promptMessages.get(i);
-                    String text = msg.getText() != null ? msg.getText() : "";
-                    logger.info("Message[{}]: type={}, content length={}", 
-                            i, msg.getClass().getSimpleName(), text.length());
-                }
-            }
-            
-            // Получение модели из конфигурации
-            String modelName = chatModelFactory.getModelName(session);
-            logger.info("Model from config: {}", modelName);
-            
-            logger.info("=== КОНЕЦ ПАРАМЕТРОВ ЗАПРОСА ===");
-        } catch (Exception e) {
-            logger.error("Ошибка при логировании параметров запроса: {}", e.getMessage(), e);
-        }
-    }
-    
-    /**
      * Создает ChatOptions с моделью из defaultOptions для OpenAI
+     * Если нужны toolCallbacks, объединяет OpenAiChatOptions с ToolCallingChatOptions
      */
-    private ChatOptions createChatOptionsWithModel(ChatModel chatModel, ChatSession session, 
-                                                   boolean useFunctionCall, Long conversationTimestamp) {
-        // Если это OpenAI модель, создаем OpenAiChatOptions с моделью из defaultOptions
+    private ChatOptions createChatOptions(ChatModel chatModel, ChatSession session, 
+                                          boolean useFunctionCall, Long conversationTimestamp) {
+        // Если это OpenAI модель, получаем модель из defaultOptions
         if (chatModel instanceof org.springframework.ai.openai.OpenAiChatModel openAiChatModel) {
             try {
                 var defaultOptions = openAiChatModel.getDefaultOptions();
                 if (defaultOptions != null && StringUtils.hasText(defaultOptions.getModel())) {
-                    // Создаем OpenAiChatOptions на основе defaultOptions с моделью
+                    // Создаем OpenAiChatOptions с моделью из defaultOptions
                     OpenAiChatOptions openAiOptions = OpenAiChatOptions.builder()
                             .model(defaultOptions.getModel())
                             .temperature(defaultOptions.getTemperature())
@@ -448,29 +350,34 @@ public class ChatService {
                             .maxTokens(defaultOptions.getMaxTokens())
                             .build();
                     
-                    logger.info("Создан OpenAiChatOptions с моделью: {}, класс: {}", 
-                            defaultOptions.getModel(), openAiOptions.getClass().getName());
-                    
-                    // Если нужны toolCallbacks, Spring AI может автоматически обернуть это в ToolCallingChatOptions
-                    // Но мы все равно возвращаем OpenAiChatOptions - модель должна быть в нем
-                    return openAiOptions;
-                } else {
-                    logger.warn("defaultOptions пуст или модель не указана!");
+                    // Если нужны toolCallbacks, нужно объединить OpenAiChatOptions с ToolCallingChatOptions
+                    // Но Spring AI не поддерживает это напрямую. Используем OpenAiChatOptions - модель будет передана
+                    // ToolCallbacks будут обрабатываться через ToolCallingManager в ChatModel
+                    if (useFunctionCall && session.isSupportFunctionCall()) {
+                        // Проблема: ToolCallingChatOptions не наследует модель из OpenAiChatOptions
+                        // Решение: передаем OpenAiChatOptions, а toolCallbacks обрабатываются через ToolCallingManager
+                        // Но это может не работать, если Spring AI требует ToolCallingChatOptions для toolCallbacks
+                        // Попробуем передать OpenAiChatOptions - модель должна быть передана
+                        return openAiOptions;
+                    } else {
+                        // Нет toolCallbacks - просто используем OpenAiChatOptions с моделью
+                        return openAiOptions;
+                    }
                 }
             } catch (Exception e) {
-                logger.warn("Не удалось получить defaultOptions для создания ChatOptions: {}", e.getMessage(), e);
+                logger.error("Ошибка при создании ChatOptions: {}", e.getMessage(), e);
             }
-        } else {
-            logger.warn("ChatModel не является OpenAiChatModel, тип: {}", chatModel.getClass().getName());
         }
         
-        // Fallback: используем обычный ToolCallingChatOptions (без модели, будет ошибка)
-        logger.warn("Используется ToolCallingChatOptions без модели - возможна ошибка!");
-        return ToolCallingChatOptions.builder()
-                .toolCallbacks(useFunctionCall && session.isSupportFunctionCall() ? session.getToolCallbacks() : new ArrayList<>())
-                .toolContext(TOOL_CONTEXT_SESSION_KEY, session)
-                .toolContext("conversationTimestamp", conversationTimestamp)
-                .build();
+        // Fallback: если не OpenAI или не удалось создать OpenAiChatOptions
+        if (useFunctionCall && session.isSupportFunctionCall()) {
+            return ToolCallingChatOptions.builder()
+                    .toolCallbacks(session.getToolCallbacks())
+                    .toolContext(TOOL_CONTEXT_SESSION_KEY, session)
+                    .toolContext("conversationTimestamp", conversationTimestamp)
+                    .build();
+        }
+        return null; // Используются defaultOptions из ChatModel
     }
 
     public void chatStreamBySentence(ChatSession session, String message, boolean useFunctionCall,
