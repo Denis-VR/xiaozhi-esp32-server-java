@@ -249,19 +249,35 @@ public class ChatService {
             conversation.add(userMessage, userTimeMillis);
             List<Message> messages = conversation.messages();
             
-            // ВСЕГДА передаем OpenAiChatOptions с моделью - Spring AI должен использовать его
+            // КРИТИЧНО: Spring AI не передает модель из defaultOptions, когда есть ToolCallingManager
+            // Решение: ВСЕГДА передаем OpenAiChatOptions с моделью, даже если нужны toolCallbacks
             ChatOptions chatOptions = null;
             if (chatModel instanceof org.springframework.ai.openai.OpenAiChatModel openAiChatModel) {
                 var defaultOptions = openAiChatModel.getDefaultOptions();
                 if (defaultOptions != null && StringUtils.hasText(defaultOptions.getModel())) {
-                    chatOptions = OpenAiChatOptions.builder()
+                    // Создаем OpenAiChatOptions с моделью - это КРИТИЧНО для передачи модели в HTTP запрос
+                    OpenAiChatOptions openAiOptions = OpenAiChatOptions.builder()
                             .model(defaultOptions.getModel())
                             .temperature(defaultOptions.getTemperature())
                             .topP(defaultOptions.getTopP())
                             .maxTokens(defaultOptions.getMaxTokens())
                             .build();
+                    
+                    chatOptions = openAiOptions;
+                    
+                    logger.debug("Создан OpenAiChatOptions с моделью: {} для chat", defaultOptions.getModel());
+                } else {
+                    logger.error("defaultOptions пуст или модель не указана в chat!");
                 }
+            } else {
+                logger.warn("ChatModel не является OpenAiChatModel в chat, тип: {}", 
+                        chatModel != null ? chatModel.getClass().getName() : "null");
             }
+            
+            if (chatOptions == null) {
+                logger.error("chatOptions is null в chat - модель НЕ будет передана в HTTP запрос!");
+            }
+            
             Prompt prompt = new Prompt(messages, chatOptions);
 
             ChatResponse chatResponse = chatModel.call(prompt);
@@ -332,19 +348,38 @@ public class ChatService {
         conversation.add(userMessage, userTimeMillis);
         List<Message> messages = conversation.messages();
         
-        // ВСЕГДА передаем OpenAiChatOptions с моделью - Spring AI должен использовать его
+        // КРИТИЧНО: Spring AI не передает модель из defaultOptions, когда есть ToolCallingManager
+        // Решение: ВСЕГДА передаем OpenAiChatOptions с моделью, даже если нужны toolCallbacks
+        // ToolCallbacks обрабатываются через ToolCallingManager в ChatModel, но модель ДОЛЖНА быть в ChatOptions
         ChatOptions chatOptions = null;
         if (chatModel instanceof org.springframework.ai.openai.OpenAiChatModel openAiChatModel) {
             var defaultOptions = openAiChatModel.getDefaultOptions();
             if (defaultOptions != null && StringUtils.hasText(defaultOptions.getModel())) {
-                chatOptions = OpenAiChatOptions.builder()
+                // Создаем OpenAiChatOptions с моделью - это КРИТИЧНО для передачи модели в HTTP запрос
+                OpenAiChatOptions openAiOptions = OpenAiChatOptions.builder()
                         .model(defaultOptions.getModel())
                         .temperature(defaultOptions.getTemperature())
                         .topP(defaultOptions.getTopP())
                         .maxTokens(defaultOptions.getMaxTokens())
                         .build();
+                
+                // Если нужны toolCallbacks, Spring AI должен использовать модель из OpenAiChatOptions
+                // ToolCallbacks обрабатываются через ToolCallingManager, но модель должна быть в ChatOptions
+                chatOptions = openAiOptions;
+                
+                logger.debug("Создан OpenAiChatOptions с моделью: {} для chatStream", defaultOptions.getModel());
+            } else {
+                logger.error("defaultOptions пуст или модель не указана в chatStream!");
             }
+        } else {
+            logger.warn("ChatModel не является OpenAiChatModel в chatStream, тип: {}", 
+                    chatModel != null ? chatModel.getClass().getName() : "null");
         }
+        
+        if (chatOptions == null) {
+            logger.error("chatOptions is null в chatStream - модель НЕ будет передана в HTTP запрос!");
+        }
+        
         Prompt prompt = new Prompt(messages, chatOptions);
 
         // 调用实际的流式聊天方法

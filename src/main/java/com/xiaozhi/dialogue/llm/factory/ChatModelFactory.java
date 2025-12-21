@@ -248,11 +248,14 @@ public class ChatModelFactory {
             throw new IllegalStateException("Модель не может быть пустой в OpenAiChatOptions");
         }
 
+        // ВРЕМЕННО: убираем toolCallingManager для проверки, передается ли модель
+        // Если модель передается без toolCallingManager, значит проблема в том, что toolCallingManager перехватывает запрос
         var chatModel = OpenAiChatModel.builder()
                 .openAiApi(openAiApi)
                 .defaultOptions(openAiChatOptions)
-                .toolCallingManager(toolCallingManager)
+                // ВРЕМЕННО ЗАКОММЕНТИРОВАНО: .toolCallingManager(toolCallingManager)
                 .build();
+        logger.warn("ВНИМАНИЕ: toolCallingManager временно отключен для проверки передачи модели!");
         logger.info("Using OpenAi model: {}, endpoint: {}, model in options: {}", 
                 model, endpoint, openAiChatOptions.getModel());
         return chatModel;
