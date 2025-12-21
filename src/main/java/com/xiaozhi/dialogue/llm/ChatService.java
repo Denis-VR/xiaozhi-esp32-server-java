@@ -256,6 +256,9 @@ public class ChatService {
             List<Message> messages = conversation.messages();
             Prompt prompt = new Prompt(messages,chatOptions);
 
+            // Логирование всех параметров запроса
+            logRequestParameters(chatModel, prompt, chatOptions, session);
+
             ChatResponse chatResponse = chatModel.call(prompt);
             if (chatResponse == null || chatResponse.getResult().getOutput().getText() == null) {
                 logger.warn("Ответ модели пуст или не содержит сгенерированного содержимого");
@@ -331,8 +334,75 @@ public class ChatService {
         List<Message> messages = conversation.messages();
         Prompt prompt = new Prompt(messages, chatOptions);
 
+        // Логирование всех параметров запроса
+        logRequestParameters(chatModel, prompt, chatOptions, session);
+
         // 调用实际的流式聊天方法
         return chatModel.stream(prompt);
+    }
+    
+    /**
+     * Логирование всех параметров запроса для отладки
+     */
+    private void logRequestParameters(ChatModel chatModel, Prompt prompt, ChatOptions chatOptions, ChatSession session) {
+        try {
+            logger.info("=== ПАРАМЕТРЫ ЗАПРОСА К LLM ===");
+            logger.info("ChatModel type: {}", chatModel.getClass().getName());
+            
+            // Логирование defaultOptions из ChatModel (если доступно)
+            if (chatModel instanceof org.springframework.ai.openai.OpenAiChatModel openAiChatModel) {
+                try {
+                    var defaultOptions = openAiChatModel.getDefaultOptions();
+                    if (defaultOptions != null) {
+                        logger.info("DefaultOptions model: {}", defaultOptions.getModel());
+                        logger.info("DefaultOptions temperature: {}", defaultOptions.getTemperature());
+                        logger.info("DefaultOptions topP: {}", defaultOptions.getTopP());
+                        logger.info("DefaultOptions maxTokens: {}", defaultOptions.getMaxTokens());
+                        logger.info("DefaultOptions class: {}", defaultOptions.getClass().getName());
+                    } else {
+                        logger.warn("DefaultOptions is null!");
+                    }
+                } catch (Exception e) {
+                    logger.warn("Не удалось получить defaultOptions: {}", e.getMessage());
+                }
+            }
+            
+            // Логирование ChatOptions из Prompt
+            logger.info("Prompt ChatOptions type: {}", chatOptions != null ? chatOptions.getClass().getName() : "null");
+            if (chatOptions instanceof org.springframework.ai.model.tool.ToolCallingChatOptions toolOptions) {
+                logger.info("ToolCallingChatOptions toolCallbacks count: {}", 
+                        toolOptions.getToolCallbacks() != null ? toolOptions.getToolCallbacks().size() : 0);
+                logger.info("ToolCallingChatOptions toolContext keys: {}", 
+                        toolOptions.getToolContext() != null ? toolOptions.getToolContext().keySet() : "null");
+            }
+            
+            // Проверка, является ли ChatOptions также OpenAiChatOptions
+            if (chatOptions instanceof org.springframework.ai.openai.OpenAiChatOptions openAiOptions) {
+                logger.info("ChatOptions is OpenAiChatOptions!");
+                logger.info("ChatOptions model: {}", openAiOptions.getModel());
+                logger.info("ChatOptions temperature: {}", openAiOptions.getTemperature());
+            } else {
+                logger.warn("ChatOptions НЕ является OpenAiChatOptions! Тип: {}", 
+                        chatOptions != null ? chatOptions.getClass().getName() : "null");
+            }
+            
+            // Логирование сообщений
+            logger.info("Messages count: {}", prompt.getContents().size());
+            for (int i = 0; i < prompt.getContents().size(); i++) {
+                Message msg = prompt.getContents().get(i);
+                logger.info("Message[{}]: type={}, content length={}", 
+                        i, msg.getClass().getSimpleName(), 
+                        msg.getContent() != null ? msg.getContent().length() : 0);
+            }
+            
+            // Получение модели из конфигурации
+            String modelName = chatModelFactory.getModelName(session);
+            logger.info("Model from config: {}", modelName);
+            
+            logger.info("=== КОНЕЦ ПАРАМЕТРОВ ЗАПРОСА ===");
+        } catch (Exception e) {
+            logger.error("Ошибка при логировании параметров запроса: {}", e.getMessage(), e);
+        }
     }
 
     public void chatStreamBySentence(ChatSession session, String message, boolean useFunctionCall,
