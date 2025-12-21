@@ -245,6 +245,14 @@ public class ChatService {
 
             // Создаем ChatOptions с моделью из defaultOptions
             ChatOptions chatOptions = createChatOptionsWithModel(chatModel, session, useFunctionCall, conversationTimestamp);
+            
+            // Логирование созданных ChatOptions ДО создания Prompt
+            logger.info("ChatOptions ДО создания Prompt: тип={}, является OpenAiChatOptions={}", 
+                    chatOptions.getClass().getName(), 
+                    chatOptions instanceof OpenAiChatOptions);
+            if (chatOptions instanceof OpenAiChatOptions openAiOpts) {
+                logger.info("ChatOptions модель: {}", openAiOpts.getModel());
+            }
 
             UserMessage userMessage = new UserMessage(message);
             Long userTimeMillis = session.getUserTimeMillis();
@@ -252,6 +260,12 @@ public class ChatService {
             conversation.add(userMessage, userTimeMillis);
             List<Message> messages = conversation.messages();
             Prompt prompt = new Prompt(messages,chatOptions);
+            
+            // Логирование ChatOptions ПОСЛЕ создания Prompt
+            ChatOptions promptOptions = prompt.getOptions();
+            logger.info("ChatOptions ПОСЛЕ создания Prompt: тип={}, является OpenAiChatOptions={}", 
+                    promptOptions != null ? promptOptions.getClass().getName() : "null",
+                    promptOptions instanceof OpenAiChatOptions);
 
             // Логирование всех параметров запроса
             logRequestParameters(chatModel, prompt, chatOptions, session);
@@ -320,6 +334,14 @@ public class ChatService {
 
         // Создаем ChatOptions с моделью из defaultOptions
         ChatOptions chatOptions = createChatOptionsWithModel(chatModel, session, useFunctionCall, conversationTimestamp);
+        
+        // Логирование созданных ChatOptions ДО создания Prompt
+        logger.info("ChatOptions ДО создания Prompt (stream): тип={}, является OpenAiChatOptions={}", 
+                chatOptions.getClass().getName(), 
+                chatOptions instanceof OpenAiChatOptions);
+        if (chatOptions instanceof OpenAiChatOptions openAiOpts) {
+            logger.info("ChatOptions модель (stream): {}", openAiOpts.getModel());
+        }
 
         UserMessage userMessage = new UserMessage(message);
         Long userTimeMillis = session.getUserTimeMillis();
@@ -327,6 +349,12 @@ public class ChatService {
         conversation.add(userMessage, userTimeMillis);
         List<Message> messages = conversation.messages();
         Prompt prompt = new Prompt(messages, chatOptions);
+        
+        // Логирование ChatOptions ПОСЛЕ создания Prompt
+        ChatOptions promptOptions = prompt.getOptions();
+        logger.info("ChatOptions ПОСЛЕ создания Prompt (stream): тип={}, является OpenAiChatOptions={}", 
+                promptOptions != null ? promptOptions.getClass().getName() : "null",
+                promptOptions instanceof OpenAiChatOptions);
 
         // Логирование всех параметров запроса
         logRequestParameters(chatModel, prompt, chatOptions, session);
@@ -420,12 +448,20 @@ public class ChatService {
                             .maxTokens(defaultOptions.getMaxTokens())
                             .build();
                     
-                    logger.debug("Создан OpenAiChatOptions с моделью: {}", defaultOptions.getModel());
+                    logger.info("Создан OpenAiChatOptions с моделью: {}, класс: {}", 
+                            defaultOptions.getModel(), openAiOptions.getClass().getName());
+                    
+                    // Если нужны toolCallbacks, Spring AI может автоматически обернуть это в ToolCallingChatOptions
+                    // Но мы все равно возвращаем OpenAiChatOptions - модель должна быть в нем
                     return openAiOptions;
+                } else {
+                    logger.warn("defaultOptions пуст или модель не указана!");
                 }
             } catch (Exception e) {
-                logger.warn("Не удалось получить defaultOptions для создания ChatOptions: {}", e.getMessage());
+                logger.warn("Не удалось получить defaultOptions для создания ChatOptions: {}", e.getMessage(), e);
             }
+        } else {
+            logger.warn("ChatModel не является OpenAiChatModel, тип: {}", chatModel.getClass().getName());
         }
         
         // Fallback: используем обычный ToolCallingChatOptions (без модели, будет ошибка)
