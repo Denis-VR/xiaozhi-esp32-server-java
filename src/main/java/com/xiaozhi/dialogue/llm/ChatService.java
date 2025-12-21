@@ -249,9 +249,19 @@ public class ChatService {
             conversation.add(userMessage, userTimeMillis);
             List<Message> messages = conversation.messages();
             
-            // Создаем ChatOptions с моделью из defaultOptions
-            ChatOptions chatOptions = createChatOptions(chatModel, session, useFunctionCall, conversationTimestamp);
-            
+            // ВСЕГДА передаем OpenAiChatOptions с моделью - Spring AI должен использовать его
+            ChatOptions chatOptions = null;
+            if (chatModel instanceof org.springframework.ai.openai.OpenAiChatModel openAiChatModel) {
+                var defaultOptions = openAiChatModel.getDefaultOptions();
+                if (defaultOptions != null && StringUtils.hasText(defaultOptions.getModel())) {
+                    chatOptions = OpenAiChatOptions.builder()
+                            .model(defaultOptions.getModel())
+                            .temperature(defaultOptions.getTemperature())
+                            .topP(defaultOptions.getTopP())
+                            .maxTokens(defaultOptions.getMaxTokens())
+                            .build();
+                }
+            }
             Prompt prompt = new Prompt(messages, chatOptions);
 
             ChatResponse chatResponse = chatModel.call(prompt);
@@ -322,9 +332,19 @@ public class ChatService {
         conversation.add(userMessage, userTimeMillis);
         List<Message> messages = conversation.messages();
         
-        // Создаем ChatOptions с моделью из defaultOptions
-        ChatOptions chatOptions = createChatOptions(chatModel, session, useFunctionCall, conversationTimestamp);
-        
+        // ВСЕГДА передаем OpenAiChatOptions с моделью - Spring AI должен использовать его
+        ChatOptions chatOptions = null;
+        if (chatModel instanceof org.springframework.ai.openai.OpenAiChatModel openAiChatModel) {
+            var defaultOptions = openAiChatModel.getDefaultOptions();
+            if (defaultOptions != null && StringUtils.hasText(defaultOptions.getModel())) {
+                chatOptions = OpenAiChatOptions.builder()
+                        .model(defaultOptions.getModel())
+                        .temperature(defaultOptions.getTemperature())
+                        .topP(defaultOptions.getTopP())
+                        .maxTokens(defaultOptions.getMaxTokens())
+                        .build();
+            }
+        }
         Prompt prompt = new Prompt(messages, chatOptions);
 
         // 调用实际的流式聊天方法
