@@ -372,7 +372,11 @@ public class ChatService {
                             .temperature(defaultOptions.getTemperature())
                             .topP(defaultOptions.getTopP())
                             .maxTokens(defaultOptions.getMaxTokens())
+                            .streamUsage(true) // КРИТИЧНО: для потокового режима
                             .build();
+                } else {
+                    // Убеждаемся, что streamUsage установлен для потокового режима (если нужно)
+                    // streamUsage уже должен быть скопирован из defaultOptions
                 }
                 
                 // Если нужны toolCallbacks, Spring AI должен использовать модель из OpenAiChatOptions
