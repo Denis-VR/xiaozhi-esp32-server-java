@@ -255,15 +255,20 @@ public class ChatService {
             if (chatModel instanceof org.springframework.ai.openai.OpenAiChatModel openAiChatModel) {
                 var defaultOptions = openAiChatModel.getDefaultOptions();
                 if (defaultOptions != null && StringUtils.hasText(defaultOptions.getModel())) {
-                    // Создаем OpenAiChatOptions с моделью - это КРИТИЧНО для передачи модели в HTTP запрос
-                    OpenAiChatOptions openAiOptions = OpenAiChatOptions.builder()
-                            .model(defaultOptions.getModel())
-                            .temperature(defaultOptions.getTemperature())
-                            .topP(defaultOptions.getTopP())
-                            .maxTokens(defaultOptions.getMaxTokens())
-                            .build();
+                    // КРИТИЧНО: Используем метод copy() для копирования всех параметров из defaultOptions
+                    // Это гарантирует, что модель будет передана в HTTP запрос
+                    chatOptions = defaultOptions.copy();
                     
-                    chatOptions = openAiOptions;
+                    // Дополнительная проверка, что модель действительно скопирована
+                    if (!StringUtils.hasText(((OpenAiChatOptions)chatOptions).getModel())) {
+                        logger.error("Модель НЕ скопирована из defaultOptions в chat! Используем явную установку.");
+                        chatOptions = OpenAiChatOptions.builder()
+                                .model(defaultOptions.getModel())
+                                .temperature(defaultOptions.getTemperature())
+                                .topP(defaultOptions.getTopP())
+                                .maxTokens(defaultOptions.getMaxTokens())
+                                .build();
+                    }
                     
                     logger.debug("Создан OpenAiChatOptions с моделью: {} для chat", defaultOptions.getModel());
                 } else {
@@ -355,13 +360,20 @@ public class ChatService {
         if (chatModel instanceof org.springframework.ai.openai.OpenAiChatModel openAiChatModel) {
             var defaultOptions = openAiChatModel.getDefaultOptions();
             if (defaultOptions != null && StringUtils.hasText(defaultOptions.getModel())) {
-                // Создаем OpenAiChatOptions с моделью - это КРИТИЧНО для передачи модели в HTTP запрос
-                OpenAiChatOptions openAiOptions = OpenAiChatOptions.builder()
-                        .model(defaultOptions.getModel())
-                        .temperature(defaultOptions.getTemperature())
-                        .topP(defaultOptions.getTopP())
-                        .maxTokens(defaultOptions.getMaxTokens())
-                        .build();
+                // КРИТИЧНО: Используем метод copy() для копирования всех параметров из defaultOptions
+                // Это гарантирует, что модель будет передана в HTTP запрос
+                OpenAiChatOptions openAiOptions = defaultOptions.copy();
+                
+                // Дополнительная проверка, что модель действительно скопирована
+                if (!StringUtils.hasText(openAiOptions.getModel())) {
+                    logger.error("Модель НЕ скопирована из defaultOptions! Используем явную установку.");
+                    openAiOptions = OpenAiChatOptions.builder()
+                            .model(defaultOptions.getModel())
+                            .temperature(defaultOptions.getTemperature())
+                            .topP(defaultOptions.getTopP())
+                            .maxTokens(defaultOptions.getMaxTokens())
+                            .build();
+                }
                 
                 // Если нужны toolCallbacks, Spring AI должен использовать модель из OpenAiChatOptions
                 // ToolCallbacks обрабатываются через ToolCallingManager, но модель должна быть в ChatOptions
