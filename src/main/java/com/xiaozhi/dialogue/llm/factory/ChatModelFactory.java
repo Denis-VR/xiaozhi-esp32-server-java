@@ -220,13 +220,11 @@ public class ChatModelFactory {
                         // Добавляем логирование запросов
                         .filter(org.springframework.web.reactive.function.client.ExchangeFilterFunction.ofRequestProcessor(
                                 request -> {
-                            logger.info("HTTP Request: {} {}", request.method(), request.url());
-                            if (request.body() != null) {
-                                // Логируем тело запроса если возможно
-                                logger.debug("HTTP Request body present");
-                            }
-                            return next.exchange(request);
-                        }))
+                                    logger.info("HTTP Request: {} {}", request.method(), request.url());
+                                    logger.info("HTTP Request headers: {}", request.headers());
+                                    logger.debug("HTTP Request body inserter present: {}", request.body() != null);
+                                    return reactor.core.publisher.Mono.just(request);
+                                })))
                 .restClientBuilder(RestClient.builder()
                         // Force HTTP/1.1 for non-streaming
                         .requestFactory(new JdkClientHttpRequestFactory(HttpClient.newBuilder()
