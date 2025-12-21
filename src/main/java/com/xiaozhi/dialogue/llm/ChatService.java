@@ -255,22 +255,24 @@ public class ChatService {
             if (chatModel instanceof org.springframework.ai.openai.OpenAiChatModel openAiChatModel) {
                 var defaultOptions = openAiChatModel.getDefaultOptions();
                 if (defaultOptions != null && StringUtils.hasText(defaultOptions.getModel())) {
-                    // КРИТИЧНО: Используем метод copy() для копирования всех параметров из defaultOptions
+                    // КРИТИЧНО: Spring AI может не передавать модель из copy() в HTTP body
+                    // Решение: ВСЕГДА создаем новый OpenAiChatOptions с явной установкой всех параметров
                     // Это гарантирует, что модель будет передана в HTTP запрос
-                    chatOptions = defaultOptions.copy();
+                    String modelName = defaultOptions.getModel();
+                    chatOptions = OpenAiChatOptions.builder()
+                            .model(modelName) // КРИТИЧНО: явно устанавливаем модель
+                            .temperature(defaultOptions.getTemperature())
+                            .topP(defaultOptions.getTopP())
+                            .maxTokens(defaultOptions.getMaxTokens())
+                            .build();
                     
-                    // Дополнительная проверка, что модель действительно скопирована
+                    // Дополнительная проверка, что модель действительно установлена
                     if (!StringUtils.hasText(((OpenAiChatOptions)chatOptions).getModel())) {
-                        logger.error("Модель НЕ скопирована из defaultOptions в chat! Используем явную установку.");
-                        chatOptions = OpenAiChatOptions.builder()
-                                .model(defaultOptions.getModel())
-                                .temperature(defaultOptions.getTemperature())
-                                .topP(defaultOptions.getTopP())
-                                .maxTokens(defaultOptions.getMaxTokens())
-                                .build();
+                        logger.error("КРИТИЧЕСКАЯ ОШИБКА: Модель НЕ установлена в OpenAiChatOptions после builder! modelName={}", modelName);
+                        throw new IllegalStateException("Модель не может быть пустой в OpenAiChatOptions");
                     }
                     
-                    logger.debug("Создан OpenAiChatOptions с моделью: {} для chat", defaultOptions.getModel());
+                    logger.debug("Создан OpenAiChatOptions с моделью: {} для chat", modelName);
                 } else {
                     logger.error("defaultOptions пуст или модель не указана в chat!");
                 }
@@ -360,23 +362,25 @@ public class ChatService {
         if (chatModel instanceof org.springframework.ai.openai.OpenAiChatModel openAiChatModel) {
             var defaultOptions = openAiChatModel.getDefaultOptions();
             if (defaultOptions != null && StringUtils.hasText(defaultOptions.getModel())) {
-                // КРИТИЧНО: Используем метод copy() для копирования всех параметров из defaultOptions
+                // КРИТИЧНО: Spring AI может не передавать модель из copy() в HTTP body при streaming
+                // Решение: ВСЕГДА создаем новый OpenAiChatOptions с явной установкой всех параметров
                 // Это гарантирует, что модель будет передана в HTTP запрос
-                OpenAiChatOptions openAiOptions = defaultOptions.copy();
+                String modelName = defaultOptions.getModel();
+                // КРИТИЧНО: Spring AI может не передавать модель из copy() в HTTP body при streaming
+                // Решение: ВСЕГДА создаем новый OpenAiChatOptions с явной установкой всех параметров
+                // Это гарантирует, что модель будет передана в HTTP запрос
+                OpenAiChatOptions openAiOptions = OpenAiChatOptions.builder()
+                        .model(modelName) // КРИТИЧНО: явно устанавливаем модель
+                        .temperature(defaultOptions.getTemperature())
+                        .topP(defaultOptions.getTopP())
+                        .maxTokens(defaultOptions.getMaxTokens())
+                        .streamUsage(true) // КРИТИЧНО: для потокового режима
+                        .build();
                 
-                // Дополнительная проверка, что модель действительно скопирована
+                // Дополнительная проверка, что модель действительно установлена
                 if (!StringUtils.hasText(openAiOptions.getModel())) {
-                    logger.error("Модель НЕ скопирована из defaultOptions! Используем явную установку.");
-                    openAiOptions = OpenAiChatOptions.builder()
-                            .model(defaultOptions.getModel())
-                            .temperature(defaultOptions.getTemperature())
-                            .topP(defaultOptions.getTopP())
-                            .maxTokens(defaultOptions.getMaxTokens())
-                            .streamUsage(true) // КРИТИЧНО: для потокового режима
-                            .build();
-                } else {
-                    // Убеждаемся, что streamUsage установлен для потокового режима (если нужно)
-                    // streamUsage уже должен быть скопирован из defaultOptions
+                    logger.error("КРИТИЧЕСКАЯ ОШИБКА: Модель НЕ установлена в OpenAiChatOptions после builder! modelName={}", modelName);
+                    throw new IllegalStateException("Модель не может быть пустой в OpenAiChatOptions");
                 }
                 
                 // Если нужны toolCallbacks, Spring AI должен использовать модель из OpenAiChatOptions
