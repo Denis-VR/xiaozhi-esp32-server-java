@@ -405,15 +405,15 @@ public class ChatService {
             }
         }
         
-        Prompt prompt = new Prompt(messages, chatOptions);
-        
-        // Проверяем ChatOptions после создания Prompt
-        ChatOptions promptOptions = prompt.getOptions();
-        logger.info("chatOptions ПОСЛЕ создания Prompt: тип={}, является OpenAiChatOptions={}", 
-                promptOptions != null ? promptOptions.getClass().getName() : "null",
-                promptOptions instanceof OpenAiChatOptions);
-        if (promptOptions instanceof OpenAiChatOptions opts) {
-            logger.info("promptOptions.getModel() после Prompt = {}", opts.getModel());
+        // КРИТИЧНО: Если chatOptions null, Spring AI должен использовать defaultOptions из ChatModel
+        // Но если chatOptions не null, Spring AI может игнорировать defaultOptions
+        // Поэтому ВСЕГДА передаем chatOptions с моделью, даже если это копия defaultOptions
+        Prompt prompt;
+        if (chatOptions != null) {
+            prompt = new Prompt(messages, chatOptions);
+        } else {
+            // Если chatOptions null, создаем Prompt без ChatOptions - Spring AI должен использовать defaultOptions
+            prompt = new Prompt(messages);
         }
 
         // 调用实际的流式聊天方法
