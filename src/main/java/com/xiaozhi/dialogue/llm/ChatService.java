@@ -387,12 +387,15 @@ public class ChatService {
             }
             
             // Логирование сообщений
-            logger.info("Messages count: {}", prompt.getContents().size());
-            for (int i = 0; i < prompt.getContents().size(); i++) {
-                Message msg = prompt.getContents().get(i);
-                logger.info("Message[{}]: type={}, content length={}", 
-                        i, msg.getClass().getSimpleName(), 
-                        msg.getContent() != null ? msg.getContent().length() : 0);
+            List<Message> promptMessages = prompt.getInstructions();
+            logger.info("Messages count: {}", promptMessages != null ? promptMessages.size() : 0);
+            if (promptMessages != null) {
+                for (int i = 0; i < promptMessages.size(); i++) {
+                    Message msg = promptMessages.get(i);
+                    String text = msg.getText() != null ? msg.getText() : "";
+                    logger.info("Message[{}]: type={}, content length={}", 
+                            i, msg.getClass().getSimpleName(), text.length());
+                }
             }
             
             // Получение модели из конфигурации
