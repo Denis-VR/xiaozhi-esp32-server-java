@@ -217,122 +217,14 @@ public class ChatModelFactory {
                                 .version(HttpClient.Version.HTTP_1_1)
                                 .connectTimeout(Duration.ofSeconds(30))
                                 .build()))
-                        // КРИТИЧНО: Перехватываем запрос и добавляем модель в тело запроса, если её нет
-                        .filter((req, next) -> {
-                            if (req.url().toString().contains("/chat/completions")) {
-                                // Создаем кастомный BodyInserter, который добавляет модель
-                                org.springframework.web.reactive.function.BodyInserter<Object, org.springframework.http.client.reactive.ClientHttpRequest> customBodyInserter = 
-                                    (outputMessage, context) -> {
-                                        // Создаем временный буфер для чтения исходного тела
-                                        org.springframework.core.io.buffer.DataBufferFactory bufferFactory = outputMessage.bufferFactory();
-                                        
-                                        // Читаем исходное тело через BodyInserter
-                                        if (req.body() != null) {
-                                            // Используем исходный BodyInserter для записи во временный буфер
-                                            org.springframework.core.io.buffer.DataBuffer tempBuffer = bufferFactory.allocateBuffer();
-                                            
-                                            return req.body().insert(
-                                                new org.springframework.http.client.reactive.ClientHttpRequest() {
-                                                    @Override
-                                                    public org.springframework.http.HttpMethod getMethod() {
-                                                        return outputMessage.getMethod();
-                                                    }
-                                                    
-                                                    @Override
-                                                    public String getMethodValue() {
-                                                        return outputMessage.getMethodValue();
-                                                    }
-                                                    
-                                                    @Override
-                                                    public org.springframework.http.uri.UriComponentsBuilder getUri() {
-                                                        return outputMessage.getUri();
-                                                    }
-                                                    
-                                                    @Override
-                                                    public org.springframework.http.HttpHeaders getHeaders() {
-                                                        return outputMessage.getHeaders();
-                                                    }
-                                                    
-                                                    @Override
-                                                    public org.springframework.core.io.buffer.DataBufferFactory bufferFactory() {
-                                                        return bufferFactory;
-                                                    }
-                                                    
-                                                    @Override
-                                                    public void beforeCommit(java.lang.Runnable action) {
-                                                        outputMessage.beforeCommit(action);
-                                                    }
-                                                    
-                                                    @Override
-                                                    public boolean isCommitted() {
-                                                        return outputMessage.isCommitted();
-                                                    }
-                                                    
-                                                    @Override
-                                                    public reactor.core.publisher.Mono<Void> writeWith(org.reactivestreams.Publisher<? extends org.springframework.core.io.buffer.DataBuffer> body) {
-                                                        return org.springframework.core.io.buffer.DataBufferUtils.join(body)
-                                                            .flatMap(dataBuffer -> {
-                                                                try {
-                                                                    // Читаем JSON
-                                                                    byte[] bytes = new byte[dataBuffer.readableByteCount()];
-                                                                    dataBuffer.read(bytes);
-                                                                    String json = new String(bytes, java.nio.charset.StandardCharsets.UTF_8);
-                                                                    
-                                                                    // Парсим и модифицируем JSON
-                                                                    com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
-                                                                    com.fasterxml.jackson.databind.JsonNode jsonNode = mapper.readTree(json);
-                                                                    
-                                                                    // Добавляем модель, если её нет
-                                                                    if (!jsonNode.has("model") || jsonNode.get("model").isNull() || jsonNode.get("model").asText().isEmpty()) {
-                                                                        ((com.fasterxml.jackson.databind.node.ObjectNode) jsonNode).put("model", model);
-                                                                        logger.warn("Модель отсутствовала в запросе, добавлена вручную: {}", model);
-                                                                    }
-                                                                    
-                                                                    // Записываем модифицированный JSON
-                                                                    String modifiedJson = mapper.writeValueAsString(jsonNode);
-                                                                    org.springframework.core.io.buffer.DataBuffer modifiedBuffer = bufferFactory.wrap(modifiedJson.getBytes(java.nio.charset.StandardCharsets.UTF_8));
-                                                                    
-                                                                    return outputMessage.writeWith(reactor.core.publisher.Mono.just(modifiedBuffer));
-                                                                } catch (Exception e) {
-                                                                    logger.error("Ошибка при модификации тела запроса: {}", e.getMessage(), e);
-                                                                    return reactor.core.publisher.Mono.error(e);
-                                                                }
-                                                            });
-                                                    }
-                                                    
-                                                    @Override
-                                                    public reactor.core.publisher.Mono<Void> setComplete() {
-                                                        return outputMessage.setComplete();
-                                                    }
-                                                },
-                                                context
-                                            );
-                                        } else {
-                                            // Если тела нет, создаем новое тело с моделью
-                                            try {
-                                                com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
-                                                com.fasterxml.jackson.databind.node.ObjectNode jsonNode = mapper.createObjectNode();
-                                                jsonNode.put("model", model);
-                                                String json = mapper.writeValueAsString(jsonNode);
-                                                org.springframework.core.io.buffer.DataBuffer buffer = bufferFactory.wrap(json.getBytes(java.nio.charset.StandardCharsets.UTF_8));
-                                                return outputMessage.writeWith(reactor.core.publisher.Mono.just(buffer));
-                                            } catch (Exception e) {
-                                                logger.error("Ошибка при создании тела запроса: {}", e.getMessage(), e);
-                                                return reactor.core.publisher.Mono.error(e);
-                                            }
-                                        }
-                                    };
-                                
-                                // Создаем новый запрос с кастомным BodyInserter
-                                org.springframework.web.reactive.function.client.ClientRequest modifiedRequest = 
-                                    org.springframework.web.reactive.function.client.ClientRequest.from(req)
-                                        .body(customBodyInserter)
-                                        .build();
-                                
-                                return next.exchange(modifiedRequest);
-                            }
-                            return next.exchange(req);
-                        }))
+                        // Добавляем логирование запросов
+                        .filter(org.springframework.web.reactive.function.client.ExchangeFilterFunction.ofRequestProcessor(
+                                request -> {
+                                    logger.info("HTTP Request: {} {}", request.method(), request.url());
+                                    logger.info("HTTP Request headers: {}", request.headers());
+                                    logger.debug("HTTP Request body inserter present: {}", request.body() != null);
+                                    return reactor.core.publisher.Mono.just(request);
+                                })))
                 .restClientBuilder(RestClient.builder()
                         // Force HTTP/1.1 for non-streaming
                         .requestFactory(new JdkClientHttpRequestFactory(HttpClient.newBuilder()
@@ -356,8 +248,8 @@ public class ChatModelFactory {
             throw new IllegalStateException("Модель не может быть пустой в OpenAiChatOptions");
         }
 
-        // ВРЕМЕННО: убираем toolCallingManager для проверки, передается ли модель
-        // Если модель передается без toolCallingManager, значит проблема в том, что toolCallingManager перехватывает запрос
+        // КРИТИЧНО: Создаем OpenAiChatModel с defaultOptions, содержащими модель
+        // Spring AI должен использовать модель из defaultOptions, если она не указана в ChatOptions из Prompt
         var chatModel = OpenAiChatModel.builder()
                 .openAiApi(openAiApi)
                 .defaultOptions(openAiChatOptions)
