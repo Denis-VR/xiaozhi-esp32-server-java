@@ -218,7 +218,8 @@ public class ChatModelFactory {
                                 .connectTimeout(Duration.ofSeconds(30))
                                 .build()))
                         // Добавляем логирование запросов
-                        .filter((request, next) -> {
+                        .filter(org.springframework.web.reactive.function.client.ExchangeFilterFunction.ofRequestProcessor(
+                                request -> {
                             logger.info("HTTP Request: {} {}", request.method(), request.url());
                             if (request.body() != null) {
                                 // Логируем тело запроса если возможно
