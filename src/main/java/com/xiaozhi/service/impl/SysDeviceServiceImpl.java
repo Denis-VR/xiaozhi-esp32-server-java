@@ -79,7 +79,7 @@ public class SysDeviceServiceImpl extends BaseServiceImpl implements SysDeviceSe
         List<SysRole> roles = roleMapper.query(queryRole);
 
         if (roles.isEmpty()) {
-            throw new NotFoundException("没有配置角色");
+            throw new NotFoundException("Роль не настроена");
         }
 
         SysRole selectedRole = null;

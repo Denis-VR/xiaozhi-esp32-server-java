@@ -54,7 +54,7 @@ public class CaptchaUtils {
         }
         
         public static CaptchaResult success() {
-            return new CaptchaResult(true, "发送成功");
+            return new CaptchaResult(true, "Отправка успешна");
         }
         
         public static CaptchaResult error(String message) {
@@ -81,30 +81,30 @@ public class CaptchaUtils {
         try {
             // 验证邮箱格式
             if (!isValidEmail(email)) {
-                logger.warn("邮箱格式不正确: {}", email);
-                return CaptchaResult.error("邮箱格式不正确");
+                logger.warn("Неверный формат электронной почты: {}", email);
+                return CaptchaResult.error("Неверный формат электронной почты");
             }
             
             // 验证验证码
             if (!isValidCode(code)) {
-                logger.warn("验证码格式不正确: {}", code);
-                return CaptchaResult.error("验证码格式不正确");
+                logger.warn("Неверный формат кода подтверждения: {}", code);
+                return CaptchaResult.error("Неверный формат кода подтверждения");
             }
             
             // 发送邮件
             boolean success = emailUtils.sendCaptchaEmail(email, code);
             
             if (success) {
-                logger.info("邮箱验证码发送成功: {}", email);
+                logger.info("Код подтверждения по электронной почте успешно отправлен: {}", email);
                 return CaptchaResult.success();
             } else {
-                logger.error("邮箱验证码发送失败: {}", email);
-                return CaptchaResult.error("邮件发送失败，请检查邮箱配置");
+                logger.error("Не удалось отправить код подтверждения по электронной почте: {}", email);
+                return CaptchaResult.error("Не удалось отправить письмо, пожалуйста, проверьте настройки электронной почты");
             }
             
         } catch (Exception e) {
-            logger.error("发送邮箱验证码异常: {}", e.getMessage(), e);
-            return CaptchaResult.error("发送失败，请稍后重试");
+            logger.error("Исключение при отправке кода подтверждения по электронной почте: {}", e.getMessage(), e);
+            return CaptchaResult.error("Отправка не удалась, пожалуйста, попробуйте позже");
         }
     }
     
@@ -119,30 +119,30 @@ public class CaptchaUtils {
         try {
             // 验证手机号格式
             if (!isValidPhoneNumber(phoneNumber)) {
-                logger.warn("手机号格式不正确: {}", phoneNumber);
-                return CaptchaResult.error("手机号格式不正确");
+                logger.warn("Неверный формат номера телефона: {}", phoneNumber);
+                return CaptchaResult.error("Неверный формат номера телефона");
             }
             
             // 验证验证码
             if (!isValidCode(code)) {
-                logger.warn("验证码格式不正确: {}", code);
-                return CaptchaResult.error("验证码格式不正确");
+                logger.warn("Неверный формат кода подтверждения: {}", code);
+                return CaptchaResult.error("Неверный формат кода подтверждения");
             }
             
             // 发送短信
             boolean success = smsUtils.sendVerificationCodeSms(phoneNumber, code);
             
             if (success) {
-                logger.info("短信验证码发送成功: {}", phoneNumber);
+                logger.info("Код подтверждения SMS успешно отправлен: {}", phoneNumber);
                 return CaptchaResult.success();
             } else {
-                logger.error("短信验证码发送失败: {}", phoneNumber);
-                return CaptchaResult.error("短信发送失败，请稍后重试");
+                logger.error("Не удалось отправить код подтверждения SMS: {}", phoneNumber);
+                return CaptchaResult.error("Не удалось отправить SMS, пожалуйста, попробуйте позже");
             }
             
         } catch (Exception e) {
-            logger.error("发送短信验证码异常: {}", e.getMessage(), e);
-            return CaptchaResult.error("短信发送失败，请联系管理员");
+            logger.error("Исключение при отправке кода подтверждения SMS: {}", e.getMessage(), e);
+            return CaptchaResult.error("Не удалось отправить SMS, пожалуйста, свяжитесь с администратором");
         }
     }
     

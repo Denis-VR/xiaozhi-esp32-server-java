@@ -401,7 +401,7 @@ public class OpusProcessor {
                 return decoder;
             } catch (OpusException e) {
                 logger.error("创建解码器失败", e);
-                throw new RuntimeException("创建解码器失败", e);
+                throw new RuntimeException("Не удалось создать декодер", e);
             }
         });
     }
@@ -582,7 +582,7 @@ public class OpusProcessor {
                 return encoder;
             } catch (OpusException e) {
                 logger.error("创建编码器失败: 采样率={}, 通道={}", rate, channels, e);
-                throw new RuntimeException("创建编码器失败", e);
+                throw new RuntimeException("Не удалось создать кодер", e);
             }
         });
     }

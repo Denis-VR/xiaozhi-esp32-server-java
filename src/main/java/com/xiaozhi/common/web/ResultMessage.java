@@ -58,7 +58,7 @@ public class ResultMessage extends HashMap<String, Object> {
      * @return 成功消息
      */
     public static ResultMessage success() {
-        return ResultMessage.success("操作成功");
+        return ResultMessage.success("Операция выполнена успешно");
     }
 
     /**
@@ -97,7 +97,7 @@ public class ResultMessage extends HashMap<String, Object> {
      * @return
      */
     public static ResultMessage error() {
-        return ResultMessage.error("操作失败");
+        return ResultMessage.error("Операция не удалась");
     }
 
     /**

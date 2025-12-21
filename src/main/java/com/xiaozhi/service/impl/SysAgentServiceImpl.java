@@ -397,7 +397,7 @@ public class SysAgentServiceImpl implements SysAgentService {
             logger.error("查询Coze智能体列表异常", e);
         } catch (RuntimeException e) {
             logger.error("获取Coze Token失败", e);
-            throw new RuntimeException("无法获取Coze平台授权码，请检查您的平台配置是否正确", e);
+            throw new RuntimeException("Не удалось получить код авторизации платформы Coze, пожалуйста, проверьте правильность конфигурации платформы", e);
         }
         
         return agentList;

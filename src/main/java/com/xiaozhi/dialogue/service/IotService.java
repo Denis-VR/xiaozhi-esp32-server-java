@@ -62,7 +62,7 @@ public class IotService {
         for (var state : states) {
             var iotDescriptor = chatSession.getIotDescriptors().get(state.getName());
             if (iotDescriptor == null) {
-                logger.error("[{}] - SessionId: {} 未找到设备: {} 的描述信息", TAG, sessionId, state.getName());
+                logger.error("[{}] - SessionId: {} Не найдена информация об описании устройства: {}", TAG, sessionId, state.getName());
                 continue;
             }
             for (var stateProp : state.getState().entrySet()) {
@@ -71,9 +71,9 @@ public class IotService {
                 var property = iotDescriptor.getProperties().get(propName);
                 if (property != null) {
                     property.setValue(propValue);
-                    logger.info("[{}] - SessionId: {} handleDeviceStates 物联网状态更新: {} , {} = {}", TAG, sessionId, state.getName(), propName, propValue);
+                    logger.info("[{}] - SessionId: {} handleDeviceStates Обновление состояния IoT: {} , {} = {}", TAG, sessionId, state.getName(), propName, propValue);
                 } else {
-                    logger.error("[{}] - SessionId: {} handleDeviceStates 未找到设备 {} 的属性 {}", TAG, sessionId, state.getName(), propName);
+                    logger.error("[{}] - SessionId: {} handleDeviceStates Не найдено свойство {} устройства {}", TAG, sessionId, propName, state.getName());
                 }
             }
         }
@@ -95,10 +95,10 @@ public class IotService {
             if (property != null) {
                 return property.getValue();
             } else {
-                logger.error("[{}] - SessionId: {} getIotStatus 未找到设备 {} 的属性 {}", TAG, sessionId, iotName, propertyName);
+                logger.error("[{}] - SessionId: {} getIotStatus Не найдено свойство {} устройства {}", TAG, sessionId, propertyName, iotName);
             }
         } else {
-            logger.error("[{}] - SessionId: {} getIotStatus 未找到设备 {}", TAG, sessionId, iotName);
+            logger.error("[{}] - SessionId: {} getIotStatus Устройство {} не найдено", TAG, sessionId, iotName);
         }
         return null;
     }
@@ -130,17 +130,17 @@ public class IotService {
                     typeCheck = true;
                 }
                 if (!typeCheck) {
-                    logger.error("[{}] - SessionId: {} setIotStatus 属性: {} 的值类型不匹配, 注册类型: {}, 入参类型: {}", TAG, sessionId, propertyName,
+                    logger.error("[{}] - SessionId: {} setIotStatus Свойство: {} Тип значения не совпадает, зарегистрированный тип: {}, тип входного параметра: {}", TAG, sessionId, propertyName,
                             property.getType(), value.getClass().getSimpleName());
                     return false;
                 }
                 property.setValue(value);
-                logger.info("[{}] - SessionId: {} setIotStatus 物联网状态更新: {} , {} = {}", TAG, sessionId, iotName, propertyName, value);
+                logger.info("[{}] - SessionId: {} setIotStatus Обновление состояния IoT: {} , {} = {}", TAG, sessionId, iotName, propertyName, value);
                 sendIotMessage(sessionId, iotName, propertyName, Collections.singletonMap(propertyName, value));
                 return true;
             }
         }
-        logger.error("[{}] - SessionId: {} setIotStatus 未找到设备 {} 的属性 {}", TAG, sessionId, iotName, propertyName);
+        logger.error("[{}] - SessionId: {} setIotStatus Не найдено свойство {} устройства {}", TAG, sessionId, propertyName, iotName);
         return false;
     }
 
@@ -217,7 +217,7 @@ public class IotService {
                             }
                             return response_success;
                         } else {
-                            return "无法获取设置";
+                            return "Не удалось получить настройки";
                         }
                     })
                     .toolMetadata(ToolMetadata.builder().returnDirect(true).build())
@@ -299,7 +299,7 @@ public class IotService {
                             }
                             return response_success;
                         } else {
-                            return "操作失败";
+                            return "Операция не удалась";
                         }
                     })
                     .toolMetadata(ToolMetadata.builder().returnDirect(true).build())

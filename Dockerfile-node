@@ -2,16 +2,20 @@ FROM node:22-alpine
 
 WORKDIR /node
 
+# Install dependencies first (better cache) using the official npm registry
+COPY web/package*.json ./
+RUN npm config set registry https://registry.npmjs.org/ \
+    && npm config set fetch-retries 5 \
+    && npm config set fetch-retry-maxtimeout 600000 \
+    && (npm ci --no-audit --no-fund || npm install --no-audit --no-fund)
+
+# Copy the rest of the frontend source
 COPY web .
 
-# 安装所有依赖
-RUN npm config set registry https://registry.npmmirror.com && \
-    npm install
-
-# 设置环境变量
+# Environment
 ENV HOST=0.0.0.0
 ENV PORT=8084
 ENV API_URL=http://server:8091
 
-# 使用开发模式
+# Dev mode
 CMD ["npm", "run", "dev"]

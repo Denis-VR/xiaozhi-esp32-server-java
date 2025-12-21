@@ -342,7 +342,7 @@ public class DialogueService{
                     sttStartTimes.put(sessionId, System.currentTimeMillis());
                     if(isDialog(sessionId)){
                         //检测到vad，触发当前语音打断事件
-                        applicationContext.publishEvent(new ChatAbortEvent(session, "检测到vad"));
+                        applicationContext.publishEvent(new ChatAbortEvent(session, "Обнаружен VAD"));
                     }
                     // 初始化对话状态
                     initChat(sessionId);
@@ -368,7 +368,7 @@ public class DialogueService{
                     break;
             }
         } catch (Exception e) {
-            logger.error("处理音频数据失败: {}", e.getMessage(), e);
+            logger.error("Не удалось обработать аудиоданные: {}", e.getMessage(), e);
         }
     }
 
@@ -400,7 +400,7 @@ public class DialogueService{
                 // 获取STT服务
                 SttService sttService = sttFactory.getSttService(sttConfig);
                 if (sttService == null) {
-                    logger.error("无法获取STT服务 - Provider: {}", sttConfig != null ? sttConfig.getProvider() : "null");
+                    logger.error("Не удалось получить STT сервис - Provider: {}", sttConfig != null ? sttConfig.getProvider() : "null");
                     return;
                 }
 
@@ -418,7 +418,7 @@ public class DialogueService{
                     if (sessionManager.getAudioStream(sessionId) != null) {
                         finalText = sttService.streamRecognition(sessionManager.getAudioStream(sessionId));
                     } else {
-                        logger.error("音频流不存在，无法进行流式识别 - SessionId: {}", sessionId);
+                        logger.error("Аудиопоток не существует, невозможно выполнить потоковое распознавание - SessionId: {}", sessionId);
                         return;
                     }
                 } else {
@@ -447,17 +447,17 @@ public class DialogueService{
                             byte[] fullAudio = audioFuture.get(90, TimeUnit.SECONDS);
                             finalText = sttService.recognition(fullAudio);
                         } catch (Exception e) {
-                            logger.error("获取完整音频进行非流式识别失败: {}", e.getMessage());
+                            logger.error("Не удалось получить полный аудио для непоточного распознавания: {}", e.getMessage());
                             return;
                         }
                     } else {
-                        logger.error("音频流不存在，无法进行非流式识别 - SessionId: {}", sessionId);
+                        logger.error("Аудиопоток не существует, невозможно выполнить непоточное распознавание - SessionId: {}", sessionId);
                         return;
                     }
                 }
 
                 if (!StringUtils.hasText(finalText)) {
-                    logger.warn("识别结果为空 - SessionId: {}", sessionId);
+                    logger.warn("Результат распознавания пуст - SessionId: {}", sessionId);
                     return;
                 }
 
@@ -483,11 +483,11 @@ public class DialogueService{
                                     });
                         })
                         .exceptionally(e -> {
-                            logger.error("处理对话失败: {}", e.getMessage(), e);
+                            logger.error("Не удалось обработать диалог: {}", e.getMessage(), e);
                             return null;
                         });
             } catch (Exception e) {
-                logger.error("流式识别错误: {}", e.getMessage(), e);
+                logger.error("Ошибка потокового распознавания: {}", e.getMessage(), e);
             }
         });
     }
@@ -514,7 +514,7 @@ public class DialogueService{
                 // 保存为WAV文件
                 Path path = session.getUserAudioPath();
                 AudioUtils.saveAsWav(path,fullPcmData);
-                logger.debug("用户音频已保存: {}", path.toString());
+                logger.debug("Аудио пользователя сохранено: {}", path.toString());
                 //更新消息表路径、时长信息
                 String deviceId = session.getSysDevice().getDeviceId().replace("-", ":");
                 Integer roleId = session.getSysDevice().getRoleId();
@@ -524,7 +524,7 @@ public class DialogueService{
                         Conversation.MESSAGE_TYPE_USER, createTime, path.toString());
             }
         } catch (Exception e) {
-            logger.error("保存用户音频失败: {}", e.getMessage(), e);
+            logger.error("Не удалось сохранить аудио пользователя: {}", e.getMessage(), e);
         }
     }
 
@@ -597,7 +597,7 @@ public class DialogueService{
         // 检查处理后的文本是否为空（即只有表情符号）
         if (emoSentence.getTtsSentence() == null || emoSentence.getTtsSentence().trim().isEmpty()) {
             // 如果只有表情符号，直接标记为准备好但不生成音频
-            logger.info("跳过纯表情符号TTS处理 - 序号: {}, 内容: \"{}\"", seq, text);
+            logger.info("Пропуск обработки TTS для чистых эмодзи - номер: {}, содержимое: \"{}\"", seq, text);
             
             // 创建句子对象
             Sentence sentence = new Sentence(seq, text, isFirst, isLast);
@@ -628,7 +628,7 @@ public class DialogueService{
         sentence.setModelResponseTime(responseTime / 1000.0); // 记录模型响应时间
         sentence.setAssistantTimeMillis(assistantTimeMillis); // 设置对话ID
 
-        logger.info("处理LLM返回的句子: seq={}, text={}, isFirst={}, isLast={}, responseTime={}s", seq, text, isFirst, isLast, responseTime/1000);
+        logger.info("Обработка предложения, возвращенного LLM: seq={}, text={}, isFirst={}, isLast={}, responseTime={}s", seq, text, isFirst, isLast, responseTime/1000);
 
         // 添加到句子队列
         CopyOnWriteArrayList<Sentence> queue = sentenceQueue.get(sessionId);
@@ -781,12 +781,12 @@ public class DialogueService{
         if (task.isFirst) {
             int ttsResponseTime = (int) (task.sentence.getTtsGenerationTime() * 1000);
             task.session.getAttributes().put(ChatSession.ATTR_FIRST_TTS_RESPONSE_TIME, ttsResponseTime);
-            logger.info("TTS首句响应时间 - SessionId: {}, 响应时间: {}秒",
+            logger.info("Время отклика TTS для первого предложения - SessionId: {}, время отклика: {} секунд",
                     task.sessionId, df.format(task.sentence.getTtsGenerationTime()));
         }
         
         // 记录日志
-        logger.info("句子音频生成完成 - 序号: {}, 对话ID: {}, 模型响应: {}秒, 语音生成: {}秒, 内容: \"{}\"",
+        logger.info("Генерация аудио предложения завершена - номер: {}, ID диалога: {}, отклик модели: {} секунд, генерация речи: {} секунд, содержимое: \"{}\"",
                 task.sentence.getSeq(), task.sentence.getAssistantTimeMillis(),
                 df.format(task.sentence.getModelResponseTime()),
                 df.format(task.sentence.getTtsGenerationTime()),
@@ -807,7 +807,7 @@ public class DialogueService{
             if(firstSentDone.get(task.sessionId) != null) {
                 firstSentDone.get(task.sessionId).set(true);
             } else {
-                logger.error("会话 {} 已经被删除，无法标记首句处理完成。", task.sessionId);
+                logger.error("Сессия {} уже удалена, невозможно отметить завершение обработки первого предложения.", task.sessionId);
             }
         }
 
@@ -846,7 +846,7 @@ public class DialogueService{
             retryTask.retryCount = task.retryCount;
             retryTask.isRetry = true;
             
-            logger.info("TTS任务重试 - 序号: {}, 重试次数: {}/{}, 内容: \"{}\", 原因: {}",
+            logger.info("Повтор TTS задачи - номер: {}, количество повторов: {}/{}, содержимое: \"{}\", причина: {}",
                     task.sentence.getSeq(), task.retryCount, MAX_RETRY_COUNT, task.sentence.getText(), reason);
 
             // 延迟后重试
@@ -854,7 +854,7 @@ public class DialogueService{
                     .execute(() -> submitTtsTask(retryTask));
         } else {
             // 超过最大重试次数，标记为失败
-            logger.error("TTS任务失败 - 序号: {}, 重试次数: {}/{}, 已达最大重试次数, 原因: {}",
+            logger.error("Задача TTS не удалась - номер: {}, количество повторов: {}/{}, достигнуто максимальное количество повторов, причина: {}",
                     task.sentence.getSeq(), task.retryCount, MAX_RETRY_COUNT, reason);
 
             // 即使失败也标记为准备好，以便队列继续处理
@@ -864,7 +864,7 @@ public class DialogueService{
             // 如果是首句，设置TTS响应时间（失败时设为0）
             if (task.isFirst) {
                 task.session.getAttributes().put(ChatSession.ATTR_FIRST_TTS_RESPONSE_TIME, 0);
-                logger.info("TTS首句响应时间（失败） - SessionId: {}, 响应时间: 0秒", task.sessionId);
+                logger.info("Время отклика TTS для первого предложения (неудача) - SessionId: {}, время отклика: 0 секунд", task.sessionId);
             }
 
             // 如果是首句，需要标记首句处理完成
@@ -872,7 +872,7 @@ public class DialogueService{
                 if(firstSentDone.get(task.sessionId) != null) {
                     firstSentDone.get(task.sessionId).set(true);
                 } else {
-                    logger.error("会话 {} 已经被删除，无法标记首句处理完成。", task.sessionId);
+                    logger.error("Сессия {} уже удалена, невозможно отметить завершение обработки первого предложения.", task.sessionId);
                 }
             }
 
@@ -882,7 +882,7 @@ public class DialogueService{
                     processQueue(task.session, task.sessionId);
                 }
             } else {
-                logger.error("会话 {} 已经被删除，无法处理队列。", task.sessionId);
+                logger.error("Сессия {} уже удалена, невозможно обработать очередь.", task.sessionId);
             }
         }
     }
@@ -897,7 +897,7 @@ public class DialogueService{
             // 获取该对话的所有音频路径
             Map<Integer, String> audioPaths = dialogueAudioPaths.get(assistantTimeMillis);
             if (audioPaths == null || audioPaths.isEmpty()) {
-                logger.warn("对话 {} 没有可用的音频路径", assistantTimeMillis);
+                logger.warn("Диалог {} не имеет доступного аудио пути", assistantTimeMillis);
                 return;
             }
 
@@ -916,7 +916,7 @@ public class DialogueService{
                     audioFilesToMerge.add(path);
                     // 查看下文件是否存在
                     if(!Files.exists(Paths.get(path))){
-                        logger.error("音频文件不存在: {}", path);
+                        logger.error("Аудиофайл не существует: {}", path);
                     }
                 }
             }
@@ -925,10 +925,10 @@ public class DialogueService{
             if (!audioFilesToMerge.isEmpty()) {
                 Path path = session.getAssistantAudioPath();
                 // 这里可能只有一条音频，合并可能会报错，尝试输出所有合并音频的路径
-                logger.info("合并音频文件数量: {}", audioFilesToMerge.size());
+                logger.info("Количество объединяемых аудиофайлов: {}", audioFilesToMerge.size());
                 AudioUtils.mergeAudioFiles(path,audioFilesToMerge);
                 // 保存合并后的音频路径
-                logger.info("对话 {} 的音频已合并: {}", assistantTimeMillis, path);
+                logger.info("Аудио диалога {} объединено: {}", assistantTimeMillis, path);
                 // 音频合并完成，删除源文件后，dialogueAudioPaths也应一并清除。
                 dialogueAudioPaths.remove(assistantTimeMillis);
                 //合并完成，更新消息表路径、时长信息
@@ -940,7 +940,7 @@ public class DialogueService{
                         Conversation.MESSAGE_TYPE_ASSISTANT, createTime, path.toString());
             }
         } catch (Exception e) {
-            logger.error("保存助手响应失败 - 对话ID: {}, 错误: {}", assistantTimeMillis, e.getMessage(), e);
+            logger.error("Не удалось сохранить ответ помощника - ID диалога: {}, ошибка: {}", assistantTimeMillis, e.getMessage(), e);
         }
     }
 
@@ -1031,7 +1031,7 @@ public class DialogueService{
      * 处理语音唤醒
      */
     public void handleWakeWord(ChatSession session, String text) {
-        logger.info("检测到唤醒词: \"{}\"", text);
+        logger.info("Обнаружено пробуждающее слово: \"{}\"", text);
         try {
             String sessionId = session.getSessionId();
             SysDevice device = sessionManager.getDeviceConfig(sessionId);
@@ -1052,7 +1052,7 @@ public class DialogueService{
                         });
             });
         } catch (Exception e) {
-            logger.error("处理唤醒词失败: {}", e.getMessage(), e);
+            logger.error("Не удалось обработать пробуждающее слово: {}", e.getMessage(), e);
         }
     }
 
@@ -1090,7 +1090,7 @@ public class DialogueService{
                 // TODO 重新思考这个textConsumer的作用。
                 textConsumer.accept(assistantTimeMillis);
             } else {
-                logger.info("处理聊天文字输入: \"{}\"", inputText);
+                logger.info("Обработка текстового ввода чата: \"{}\"", inputText);
                 // 使用句子切分处理流式响应
                 chatService.chatStreamBySentence(session, inputText, true,
                         (sentence, isFirst, isLast) -> {
@@ -1102,7 +1102,7 @@ public class DialogueService{
                         });
             }
         } catch (Exception e) {
-            logger.error("处理唤醒词失败: {}", e.getMessage(), e);
+            logger.error("Не удалось обработать пробуждающее слово: {}", e.getMessage(), e);
         }
     }
 
@@ -1147,7 +1147,7 @@ public class DialogueService{
                 return "goodbye!";
             }
         } catch (Exception e) {
-            logger.error("发送告别语失败: {}", e.getMessage(), e);
+            logger.error("Не удалось отправить прощальное сообщение: {}", e.getMessage(), e);
             return "goodbye!";
         }
     }
@@ -1158,7 +1158,7 @@ public class DialogueService{
     public void abortDialogue(ChatSession session, String reason) {
         try {
             String sessionId = session.getSessionId();
-            logger.info("中止对话 - SessionId: {}, Reason: {}", sessionId, reason);
+            logger.info("Прерывание диалога - SessionId: {}, Причина: {}", sessionId, reason);
 
             // 关闭音频流
             sessionManager.closeAudioStream(sessionId);
@@ -1185,7 +1185,7 @@ public class DialogueService{
             PriorityBlockingQueue<TtsTask> taskQueue = sessionTaskQueues.get(sessionId);
             if (taskQueue != null) {
                 taskQueue.clear();
-                logger.info("已清空TTS任务队列 - SessionId: {}", sessionId);
+                logger.info("Очередь задач TTS очищена - SessionId: {}", sessionId);
             }
             
             // 释放所有信号量许可，确保正在进行的TTS任务能够完成
@@ -1193,13 +1193,13 @@ public class DialogueService{
             if (semaphore != null) {
                 // 释放所有可能的许可，让正在进行的任务能够完成
                 semaphore.release(MAX_CONCURRENT_PER_SESSION);
-                logger.info("已释放TTS信号量许可 - SessionId: {}", sessionId);
+                logger.info("Разрешения семафора TTS освобождены - SessionId: {}", sessionId);
             }
 
             // 终止语音发送
             audioService.sendStop(session);
         } catch (Exception e) {
-            logger.error("中止对话失败: {}", e.getMessage(), e);
+            logger.error("Не удалось прервать диалог: {}", e.getMessage(), e);
         }
     }
 
@@ -1238,19 +1238,19 @@ public class DialogueService{
 
     // 添加告别语列表
     private static final List<String> goodbyeMessages = Arrays.asList(
-            "看来你暂时不需要我了，我先休息一下啦，有需要再叫我哦~",
-            "你好像在忙别的事情，我先退下啦，需要我随时喊我哦~",
-            "那我先不打扰你啦，有问题随时叫我，拜拜~",
-            "看来你有别的事情要忙，我先走啦，需要我时再呼唤我哦~",
-            "我发现你有一会儿没说话了，我先去充电啦，需要我时再叫我~",
-            "你好像在忙，我先不打扰你啦，有需要再喊我哦，拜拜~",
-            "那我先不打扰你啦，需要我时随时可以唤醒我，拜拜~",
-            "我先去休息一下啦，有什么需要随时叫我，拜拜~",
-            "看起来你在忙别的事情，我先不打扰你啦，需要我时再叫我~",
-            "那我先告退啦，需要我的时候再呼唤我，拜拜~",
-            "我先离开一会儿，有需要随时叫我，拜拜~",
-            "我先去休息一下，有需要随时叫我，拜拜~",
-            "那我先不打扰你啦，需要我时再叫我，拜拜~",
-            "看来你有别的事情要忙，我先离开啦，需要时再叫我哦~",
-            "我发现你有段时间没说话了，我先去充电啦，需要我时再唤醒我~");
+            "Похоже, я вам сейчас не нужен, я немного отдохну. Если понадоблюсь - позовите меня.",
+            "Вы, кажется, заняты другим делом, я отойду. Если понадоблюсь - позовите меня.",
+            "Тогда я не буду вам мешать. Если возникнут вопросы - зовите меня. Пока!",
+            "Похоже, у вас есть другие дела. Я уйду, если понадоблюсь - позовите меня.",
+            "Я заметил, что вы давно не говорили. Я пойду подзаряжусь, если понадоблюсь - позовите меня.",
+            "Вы, кажется, заняты. Я не буду вам мешать. Если понадоблюсь - позовите меня. Пока!",
+            "Тогда я не буду вам мешать. Если понадоблюсь - можете разбудить меня. Пока!",
+            "Я пойду немного отдохну. Если что-то понадобится - позовите меня. Пока!",
+            "Похоже, вы заняты другим делом. Я не буду вам мешать. Если понадоблюсь - позовите меня.",
+            "Тогда я отойду. Если понадоблюсь - позовите меня. Пока!",
+            "Я уйду ненадолго. Если понадоблюсь - позовите меня. Пока!",
+            "Я пойду немного отдохну. Если понадоблюсь - позовите меня. Пока!",
+            "Тогда я не буду вам мешать. Если понадоблюсь - позовите меня. Пока!",
+            "Похоже, у вас есть другие дела. Я уйду, если понадоблюсь - позовите меня.",
+            "Я заметил, что вы давно не говорили. Я пойду подзаряжусь, если понадоблюсь - разбудите меня.");
 }

@@ -55,7 +55,7 @@ public final class FileHashUtil {
      */
     public static String calculateHash(MultipartFile file, String algorithm) {
         if (file == null || file.isEmpty()) {
-            throw new IllegalArgumentException("文件不能为空。");
+            throw new IllegalArgumentException("Файл не может быть пустым.");
         }
 
         try {
@@ -70,9 +70,9 @@ public final class FileHashUtil {
             byte[] hashBytes = digest.digest();
             return bytesToHex(hashBytes);
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("不支持的哈希算法: " + algorithm, e);
+            throw new RuntimeException("Неподдерживаемый алгоритм хеширования: " + algorithm, e);
         } catch (IOException e) {
-            throw new RuntimeException("计算文件哈希时出错: " + file.getOriginalFilename(), e);
+            throw new RuntimeException("Ошибка при вычислении хеша файла: " + file.getOriginalFilename(), e);
         }
     }
 

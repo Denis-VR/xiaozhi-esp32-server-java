@@ -171,7 +171,7 @@ public class ChatService {
                         }
                     }
                 } catch (Exception e) {
-                    logger.warn("尝试使用ToolCallingManager获取工具名称时出错: {}", e.getMessage(), e);
+                    logger.warn("Ошибка при попытке использовать ToolCallingManager для получения имени инструмента: {}", e.getMessage(), e);
                 }
             }
         }
@@ -258,7 +258,7 @@ public class ChatService {
 
             ChatResponse chatResponse = chatModel.call(prompt);
             if (chatResponse == null || chatResponse.getResult().getOutput().getText() == null) {
-                logger.warn("模型响应为空或无生成内容");
+                logger.warn("Ответ модели пуст или не содержит сгенерированного содержимого");
                 return "Извините, я столкнулся с проблемой при обработке вашего запроса. Пожалуйста, попробуйте позже.";
             }
             AssistantMessage assistantMessage = chatResponse.getResult().getOutput();
@@ -291,7 +291,7 @@ public class ChatService {
             return assistantMessage.getText();
 
         } catch (Exception e) {
-            logger.error("处理查询时出错: {}", e.getMessage(), e);
+            logger.error("Ошибка при обработке запроса: {}", e.getMessage(), e);
             return "Извините, я столкнулся с проблемой при обработке вашего запроса. Пожалуйста, попробуйте позже.";
         }
     }
@@ -400,9 +400,9 @@ public class ChatService {
                                 streamListener.onComplete(toolName.toString(), llmUsage.get());
                             });
         } catch (Exception e) {
-            logger.error("处理LLM时出错: {}", e.getMessage(), e);
+            logger.error("Ошибка при обработке LLM: {}", e.getMessage(), e);
             // 发送错误信号
-            sentenceHandler.accept("抱歉，我在处理您的请求时遇到了问题。", true, true);
+            sentenceHandler.accept("Извините, я столкнулся с проблемой при обработке вашего запроса.", true, true);
         }
     }
 
@@ -557,7 +557,7 @@ public class ChatService {
             persistMessages(toolName, llmUsage);
 
             // 记录处理的句子数量
-            logger.debug("总共处理了 {} 个句子", sentenceCount.get());
+            logger.debug("Всего обработано {} предложений", sentenceCount.get());
         }
 
         /**
@@ -599,9 +599,9 @@ public class ChatService {
 
         @Override
         public void onError(Throwable e) {
-            logger.error("流式响应出错: {}", e.getMessage(), e);
+            logger.error("Ошибка потокового ответа: {}", e.getMessage(), e);
             // 发送错误信号
-            sentenceHandler.accept("抱歉，我在处理您的请求时遇到了问题。", true, true);
+            sentenceHandler.accept("Извините, я столкнулся с проблемой при обработке вашего запроса.", true, true);
 
         }
     };

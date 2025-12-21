@@ -56,10 +56,10 @@ public class SileroVadModel implements VadModel {
         } catch (UnsatisfiedLinkError e) {
             logger.error("ONNX Runtime native libraries加载失败，请安装Visual C++ Redistributable: {}", e.getMessage());
             logger.error("下载地址: https://aka.ms/vs/17/release/vc_redist.x64.exe");
-            throw new RuntimeException("ONNX Runtime native libraries加载失败，请安装Visual C++ Redistributable", e);
+            throw new RuntimeException("Не удалось загрузить нативные библиотеки ONNX Runtime, пожалуйста, установите Visual C++ Redistributable", e);
         } catch (OrtException e) {
             logger.error("Silero VAD模型初始化失败", e);
-            throw new RuntimeException("VAD模型初始化失败", e);
+            throw new RuntimeException("Не удалось инициализировать модель VAD", e);
         }
     }
 

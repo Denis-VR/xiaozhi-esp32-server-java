@@ -34,11 +34,11 @@ public class PlayHuiBenFunction implements ToolsGlobalRegistry.GlobalFunction {
                         num = RandomUtil.randomInt(5, 1100);
                     }
                     huiBenService.playHuiBen(chatSession, num);
-                    return "尝试播放绘本《" + num + "》";
+                    return "Попытка воспроизвести книгу «" + num + "»";
 
                 } catch (Exception e) {
-                    logger.error("播放绘本异常，绘本编号: {}", num, e);
-                    return "绘本播放失败";
+                    logger.error("Исключение при воспроизведении книги, номер книги: {}", num, e);
+                    return "Не удалось воспроизвести книгу";
                 }
             })
             .toolMetadata(ToolMetadata.builder().returnDirect(true).build())

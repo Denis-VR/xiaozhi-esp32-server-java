@@ -31,8 +31,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UsernameNotFoundException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResultMessage handleUsernameNotFoundException(UsernameNotFoundException e, WebRequest request) {
-        logger.warn("用户名不存在异常: {}", e.getMessage(), e);
-        return ResultMessage.error("用户名不存在");
+        logger.warn("Исключение: имя пользователя не существует: {}", e.getMessage(), e);
+        return ResultMessage.error("Имя пользователя не существует");
     }
 
     /**
@@ -41,8 +41,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UserPasswordNotMatchException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResultMessage handleUserPasswordNotMatchException(UserPasswordNotMatchException e, WebRequest request) {
-        logger.warn("用户密码不匹配异常: {}", e.getMessage(), e);
-        return ResultMessage.error("用户密码不正确");
+        logger.warn("Исключение: пароль пользователя не совпадает: {}", e.getMessage(), e);
+        return ResultMessage.error("Неверный пароль пользователя");
     }
 
     /**
@@ -51,7 +51,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UnauthorizedException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public ResultMessage handleUnauthorizedException(UnauthorizedException e, WebRequest request) {
-        logger.warn("权限不足: {}", e.getMessage());
+        logger.warn("Недостаточно прав: {}", e.getMessage());
         return ResultMessage.error(HttpStatus.FORBIDDEN.value(), e.getMessage());
     }
 
@@ -61,7 +61,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ResourceNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ResultMessage handleResourceNotFoundException(ResourceNotFoundException e, WebRequest request) {
-        logger.warn("资源不存在: {}", e.getMessage());
+        logger.warn("Ресурс не существует: {}", e.getMessage());
         return ResultMessage.error(HttpStatus.NOT_FOUND.value(), e.getMessage());
     }
 
@@ -71,8 +71,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NoResourceFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ResultMessage handleNoResourceFoundException(NoResourceFoundException e, WebRequest request) {
-        logger.warn("静态资源找不到: {}", e.getResourcePath());
-        return ResultMessage.error(HttpStatus.NOT_FOUND.value(), "请求的资源不存在");
+        logger.warn("Статический ресурс не найден: {}", e.getResourcePath());
+        return ResultMessage.error(HttpStatus.NOT_FOUND.value(), "Запрашиваемый ресурс не существует");
     }
 
     /**
@@ -81,8 +81,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NoHandlerFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ResultMessage handleNoHandlerFoundException(NoHandlerFoundException e, HttpServletRequest request) {
-        logger.warn("请求路径不存在: {} {}", e.getHttpMethod(), e.getRequestURL());
-        return ResultMessage.error(HttpStatus.NOT_FOUND.value(), "请求的接口不存在");
+        logger.warn("Путь запроса не существует: {} {}", e.getHttpMethod(), e.getRequestURL());
+        return ResultMessage.error(HttpStatus.NOT_FOUND.value(), "Запрашиваемый интерфейс не существует");
     }
 
     /**
@@ -91,8 +91,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
     public ResultMessage handleHttpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException e, HttpServletRequest request) {
-        logger.warn("请求方法不支持: {} {}, 支持的方法: {}", e.getMethod(), request.getRequestURI(), e.getSupportedHttpMethods());
-        return ResultMessage.error(HttpStatus.METHOD_NOT_ALLOWED.value(), "请求方法不支持");
+        logger.warn("Метод запроса не поддерживается: {} {}, поддерживаемые методы: {}", e.getMethod(), request.getRequestURI(), e.getSupportedHttpMethods());
+        return ResultMessage.error(HttpStatus.METHOD_NOT_ALLOWED.value(), "Метод запроса не поддерживается");
     }
 
     /**
@@ -101,8 +101,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AsyncRequestTimeoutException.class)
     @ResponseStatus(HttpStatus.REQUEST_TIMEOUT)
     public ResultMessage handleAsyncRequestTimeoutException(AsyncRequestTimeoutException e, WebRequest request) {
-        logger.warn("异步请求超时: {}", request.getDescription(false));
-        return ResultMessage.error(HttpStatus.REQUEST_TIMEOUT.value(), "请求超时，请稍后重试");
+        logger.warn("Асинхронный запрос превысил время ожидания: {}", request.getDescription(false));
+        return ResultMessage.error(HttpStatus.REQUEST_TIMEOUT.value(), "Превышено время ожидания запроса, пожалуйста, попробуйте позже");
     }
 
     /**
@@ -111,8 +111,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(RuntimeException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResultMessage handleRuntimeException(RuntimeException e, WebRequest request) {
-        logger.error("业务异常: {}", e.getMessage(), e);
-        return ResultMessage.error("操作失败：" + e.getMessage());
+        logger.error("Бизнес-исключение: {}", e.getMessage(), e);
+        return ResultMessage.error("Операция не удалась: " + e.getMessage());
     }
 
     /**
@@ -121,7 +121,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ResultMessage handleException(Exception e, WebRequest request) {
-        logger.error("系统异常: {}", e.getMessage(), e);
-        return ResultMessage.error("服务器错误，请联系管理员");
+        logger.error("Системное исключение: {}", e.getMessage(), e);
+        return ResultMessage.error("Ошибка сервера, пожалуйста, свяжитесь с администратором");
     }
 }

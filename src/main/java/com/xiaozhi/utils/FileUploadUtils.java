@@ -63,7 +63,7 @@ public class FileUploadUtils {
         if (!directory.exists()) {
             boolean created = directory.mkdirs();
             if (!created) {
-                throw new IOException("无法创建目录: " + fullPath);
+                throw new IOException("Не удалось создать директорию: " + fullPath);
             }
         }
 
@@ -84,7 +84,7 @@ public class FileUploadUtils {
      */
     public static void assertAllowed(MultipartFile file) {
         if (file.getSize() > DEFAULT_MAX_SIZE) {
-            throw new IllegalArgumentException("文件大小超过限制，最大允许：" + (DEFAULT_MAX_SIZE / 1024 / 1024) + "MB");
+            throw new IllegalArgumentException("Размер файла превышает ограничение, максимально допустимо: " + (DEFAULT_MAX_SIZE / 1024 / 1024) + "MB");
         }
     }
 

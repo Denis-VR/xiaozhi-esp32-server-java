@@ -328,11 +328,39 @@
     </build>
 
     <repositories>
+        <!-- Основной центральный репозиторий Maven -->
+        <repository>
+            <id>central</id>
+            <name>Maven Central</name>
+            <url>https://repo1.maven.org/maven2/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+
+        <!-- Официальный репозиторий Spring (на случай, если артефакта нет в Central) -->
+        <repository>
+            <id>spring-releases</id>
+            <name>Spring Releases</name>
+            <url>https://repo.spring.io/release</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+
+        <!-- Зеркало Aliyun оставляем как дополнительный источник -->
         <repository>
             <id>aliyun</id>
             <url>https://maven.aliyun.com/nexus/content/groups/public/</url>
         </repository>
 
+        <!-- Репозиторий 0110 для зависимостей TarsosDSP -->
         <repository>
             <id>be.0110.repo-releases</id>
             <name>0110.be repository</name>

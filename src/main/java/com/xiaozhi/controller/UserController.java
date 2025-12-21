@@ -120,12 +120,12 @@ public class UserController extends BaseController {
 
             return ResultMessage.success(result);
         } catch (UsernameNotFoundException e) {
-            return ResultMessage.error("用户不存在");
+            return ResultMessage.error("Пользователь не существует");
         } catch (UserPasswordNotMatchException e) {
-            return ResultMessage.error("密码错误");
+            return ResultMessage.error("Неверный пароль");
         } catch (Exception e) {
             logger.info(e.getMessage(), e);
-            return ResultMessage.error("操作失败");
+            return ResultMessage.error("Операция не удалась");
         }
     }
 
@@ -149,7 +149,7 @@ public class UserController extends BaseController {
             }
 
             if (!StringUtils.hasText(code)) {
-                return ResultMessage.error("验证码不能为空");
+                return ResultMessage.error("Код подтверждения не может быть пустым");
             }
 
             // 验证验证码是否正确
@@ -158,7 +158,7 @@ public class UserController extends BaseController {
             codeUser.setCode(code);
             int row = userService.queryCaptcha(codeUser);
             if (row < 1) {
-                return ResultMessage.error("验证码错误或已过期");
+                return ResultMessage.error("Код подтверждения неверен или истек");
             }
 
             // 根据手机号查询用户
@@ -166,7 +166,7 @@ public class UserController extends BaseController {
             
             // 如果用户不存在，返回状态码201，提示需要注册
             if (user == null) {
-                return new ResultMessage(201, "该手机号未注册，请先注册", null);
+                return new ResultMessage(201, "Этот номер телефона не зарегистрирован, пожалуйста, сначала зарегистрируйтесь", null);
             }
 
             // 获取用户角色
@@ -201,8 +201,8 @@ public class UserController extends BaseController {
 
             return ResultMessage.success(result);
         } catch (Exception e) {
-            logger.error("手机号登录失败: {}", e.getMessage(), e);
-            return ResultMessage.error("登录失败，请稍后重试");
+            logger.error("Ошибка входа по номеру телефона: {}", e.getMessage(), e);
+            return ResultMessage.error("Ошибка входа, пожалуйста, попробуйте позже");
         }
     }
 
@@ -218,7 +218,7 @@ public class UserController extends BaseController {
         try {
             String code = (String) requestBody.get("code");
             if (!StringUtils.hasText(code)) {
-                return ResultMessage.error("微信登录code不能为空");
+                return ResultMessage.error("Код входа WeChat не может быть пустым");
             }
 
             // 调用微信API获取openid和session_key
@@ -228,7 +228,7 @@ public class UserController extends BaseController {
             String sessionKey = wxLoginInfo.get("session_key");
 
             if (!StringUtils.hasText(openid)) {
-                return ResultMessage.error("获取微信openid失败");
+                return ResultMessage.error("Не удалось получить WeChat openid");
             }
 
             // 根据openid查询用户
@@ -246,7 +246,7 @@ public class UserController extends BaseController {
                 result.put("sessionId", request.getSession().getId());
 
                 // 返回状态码201，表示需要绑定账号
-                return new ResultMessage(201, "需要绑定账号", result);
+                return new ResultMessage(201, "Требуется привязка аккаунта", result);
             }
 
             // 保存用户到会话
@@ -281,8 +281,8 @@ public class UserController extends BaseController {
 
             return ResultMessage.success(result);
         } catch (Exception e) {
-            logger.error("微信登录失败: {}", e.getMessage(), e);
-            return ResultMessage.error("微信登录失败: " + e.getMessage());
+            logger.error("Ошибка входа через WeChat: {}", e.getMessage(), e);
+            return ResultMessage.error("Ошибка входа через WeChat: " + e.getMessage());
         }
     }
 
@@ -392,7 +392,7 @@ public class UserController extends BaseController {
             if (StringUtils.hasText(username)) {
                 userQuery = userService.selectUserByUsername(username);
                 if (ObjectUtils.isEmpty(userQuery)) {
-                    return ResultMessage.error("无此用户，更新失败");
+                    return ResultMessage.error("Пользователь не найден, обновление не удалось");
                 }
             }
 
@@ -400,7 +400,7 @@ public class UserController extends BaseController {
                 // 检查邮箱是否被其他用户使用
                 SysUser existingUser = userService.selectUserByEmail(email);
                 if (!ObjectUtils.isEmpty(existingUser) && !existingUser.getUserId().equals(userQuery.getUserId())) {
-                    return ResultMessage.error("邮箱已被其他用户绑定，更新失败");
+                    return ResultMessage.error("Электронная почта уже привязана к другому пользователю, обновление не удалось");
                 }
                 userQuery.setEmail(email);
             }
@@ -409,7 +409,7 @@ public class UserController extends BaseController {
                 // 检查手机号是否被其他用户使用
                 SysUser existingUser = userService.selectUserByTel(tel);
                 if (!ObjectUtils.isEmpty(existingUser) && !existingUser.getUserId().equals(userQuery.getUserId())) {
-                    return ResultMessage.error("手机号已被其他用户绑定，更新失败");
+                    return ResultMessage.error("Номер телефона уже привязан к другому пользователю, обновление не удалось");
                 }
                 userQuery.setTel(tel);
             }
@@ -461,13 +461,13 @@ public class UserController extends BaseController {
 
             // 验证邮箱格式
             if (!captchaUtils.isValidEmail(email)) {
-                return ResultMessage.error("邮箱格式不正确");
+                return ResultMessage.error("Неверный формат электронной почты");
             }
 
             // 如果是找回密码，检查邮箱是否已注册
             SysUser user = userService.selectUserByEmail(email);
             if ("forget".equals(type) && ObjectUtils.isEmpty(user)) {
-                return ResultMessage.error("该邮箱未注册");
+                return ResultMessage.error("Эта электронная почта не зарегистрирована");
             }
 
             // 生成验证码
@@ -482,8 +482,8 @@ public class UserController extends BaseController {
                 return ResultMessage.error(result.getMessage());
             }
         } catch (Exception e) {
-            logger.error("发送验证码邮件失败: " + e.getMessage(), e);
-            return ResultMessage.error("发送失败，请稍后重试");
+            logger.error("Не удалось отправить письмо с кодом подтверждения: " + e.getMessage(), e);
+            return ResultMessage.error("Отправка не удалась, пожалуйста, попробуйте позже");
         }
     }
     
@@ -505,13 +505,13 @@ public class UserController extends BaseController {
 
             // 验证手机号格式
             if (!captchaUtils.isValidPhoneNumber(tel)) {
-                return ResultMessage.error("手机号格式不正确");
+                return ResultMessage.error("Неверный формат номера телефона");
             }
 
             // 如果是找回密码，检查手机号是否已注册
             SysUser user = userService.selectUserByTel(tel);
             if ("forget".equals(type) && ObjectUtils.isEmpty(user)) {
-                return ResultMessage.error("该手机号未注册");
+                return ResultMessage.error("Этот номер телефона не зарегистрирован");
             }
 
             // 生成验证码并保存到数据库
@@ -527,8 +527,8 @@ public class UserController extends BaseController {
                 return ResultMessage.error(result.getMessage());
             }
         } catch (Exception e) {
-            logger.error("发送短信验证码失败: {}", e.getMessage(), e);
-            return ResultMessage.error("短信发送失败，请联系管理员");
+            logger.error("Не удалось отправить SMS с кодом подтверждения: {}", e.getMessage(), e);
+            return ResultMessage.error("Не удалось отправить SMS, пожалуйста, свяжитесь с администратором");
         }
     }
 
@@ -559,7 +559,7 @@ public class UserController extends BaseController {
             return ResultMessage.success();
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-            return ResultMessage.error("操作失败,请联系管理员");
+            return ResultMessage.error("Операция не удалась, пожалуйста, свяжитесь с администратором");
         }
     }
 
@@ -579,20 +579,20 @@ public class UserController extends BaseController {
             String userEmail = user.getEmail();
             user = userService.selectUserByTel(userTel);
             if (!ObjectUtils.isEmpty(user)) {
-                return ResultMessage.error("手机已注册");
+                return ResultMessage.error("Телефон уже зарегистрирован");
             }
             user = userService.selectUserByEmail(userEmail);
             if (!ObjectUtils.isEmpty(user)) {
-                return ResultMessage.error("邮箱已注册");
+                return ResultMessage.error("Электронная почта уже зарегистрирована");
             }
             user = userService.selectUserByUsername(userName);
             if (!ObjectUtils.isEmpty(user)) {
-                return ResultMessage.error("用户名已存在");
+                return ResultMessage.error("Имя пользователя уже существует");
             }
             return ResultMessage.success();
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-            return ResultMessage.error("操作失败,请联系管理员");
+            return ResultMessage.error("Операция не удалась, пожалуйста, свяжитесь с администратором");
         }
     }
 }

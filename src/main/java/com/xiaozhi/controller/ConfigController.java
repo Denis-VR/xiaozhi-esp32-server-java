@@ -149,7 +149,7 @@ public class ConfigController extends BaseController {
             // 提取 "data" 字段
             JsonNode dataNode = rootNode.get("data");
             if (dataNode == null || !dataNode.isArray()) {
-                return ResultMessage.error("响应数据格式错误，缺少 data 字段或 data 不是数组");
+                return ResultMessage.error("Ошибка формата данных ответа, отсутствует поле data или data не является массивом");
             }
 
             // 将 "data" 字段解析为 List<Map<String, Object>>
@@ -167,7 +167,7 @@ public class ConfigController extends BaseController {
             // 捕获 HTTP 客户端异常并返回详细错误信息
             String errorMessage = e.getResponseBodyAsString();
             // 返回详细错误信息到前端
-            return ResultMessage.error("调用模型接口失败: " + errorMessage);
+            return ResultMessage.error("Не удалось вызвать интерфейс модели: " + errorMessage);
 
         } catch (Exception e) {
             // 捕获其他异常并记录日志

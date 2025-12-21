@@ -65,13 +65,13 @@ public class ChangeRoleFunction implements ToolsGlobalRegistry.GlobalFunction {
                                 }
                                 Conversation conversation = conversationFactory.initConversation(sysDevice, role, chatSession.getSessionId());
                                 chatSession.setConversation(conversation);
-                                return "角色已切换至" + roleName;
+                                return "Роль переключена на " + roleName;
                             }else{
-                                return "角色切换失败, 没有对应角色哦";
+                                return "Не удалось переключить роль, соответствующей роли не найдено";
                             }
                         }catch (Exception e){
-                            logger.error("角色切换异常，role name: {}", roleName, e);
-                            return "角色切换异常";
+                            logger.error("Исключение при переключении роли, имя роли: {}", roleName, e);
+                            return "Ошибка переключения роли";
                         }
                     })
                     .toolMetadata(ToolMetadata.builder().returnDirect(true).build())

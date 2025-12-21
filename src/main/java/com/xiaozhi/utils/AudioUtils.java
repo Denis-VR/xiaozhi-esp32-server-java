@@ -75,19 +75,19 @@ public class AudioUtils {
             // 等待进程完成
             int exitCode = process.waitFor();
             if (exitCode != 0) {
-                logger.error("ffmpeg转换失败，退出代码: {}，错误信息: {}", exitCode, errorOutput.toString());
+                logger.error("Преобразование ffmpeg не удалось, код выхода: {}，информация об ошибке: {}", exitCode, errorOutput.toString());
                 return null;
             }
 
             // 检查输出文件是否存在
             if (!Files.exists(Paths.get(filePath))) {
-                logger.error("ffmpeg转换后的MP3文件不存在");
+                logger.error("MP3 файл после преобразования ffmpeg не существует");
                 return null;
             }
 
             return fileName;
         } catch (IOException | InterruptedException e) {
-            logger.error("保存MP3文件时发生错误", e);
+            logger.error("Ошибка при сохранении MP3 файла", e);
             if (e instanceof InterruptedException) {
                 Thread.currentThread().interrupt();
             }
@@ -97,7 +97,7 @@ public class AudioUtils {
             try {
                 Files.deleteIfExists(Paths.get(tempPcmPath));
             } catch (IOException e) {
-                logger.warn("删除临时PCM文件失败", e);
+                logger.warn("Не удалось удалить временный PCM файл", e);
             }
         }
     }
@@ -144,7 +144,7 @@ public class AudioUtils {
             dos.flush();
             return baos.toByteArray();
         } catch (IOException e) {
-            logger.error("PCM转WAV字节数组失败", e);
+            logger.error("Не удалось преобразовать PCM в массив байтов WAV", e);
             return pcmData;
         }
     }
@@ -190,9 +190,9 @@ public class AudioUtils {
                 dos.write(audioData);
             }
         } catch (FrameRecorder.Exception e) {
-            logger.error("编码WAV时发生错误", e);
+            logger.error("Ошибка при кодировании WAV", e);
         } catch (IOException e) {
-            logger.error("写入WAV文件时发生错误", e);
+            logger.error("Ошибка при записи WAV файла", e);
         }
     }
 
@@ -263,7 +263,7 @@ public class AudioUtils {
             }
 
         } catch (Exception e) {
-            logger.error("合并音频文件时发生错误", e);
+            logger.error("Ошибка при объединении аудиофайлов", e);
         }
     }
 
@@ -287,13 +287,13 @@ public class AudioUtils {
      */
     public static byte[] wavBytesToPcm(byte[] wavData) throws IOException {
         if (wavData == null || wavData.length < 44) { // WAV头至少44字节
-            throw new IOException("无效的WAV数据");
+            throw new IOException("Недействительные данные WAV");
         }
 
         // 检查WAV文件标识
         if (wavData[0] != 'R' || wavData[1] != 'I' || wavData[2] != 'F' || wavData[3] != 'F' ||
                 wavData[8] != 'W' || wavData[9] != 'A' || wavData[10] != 'V' || wavData[11] != 'E') {
-            throw new IOException("不是有效的WAV文件格式");
+            throw new IOException("Неверный формат WAV файла");
         }
 
         // 查找data子块
@@ -306,7 +306,7 @@ public class AudioUtils {
         }
 
         if (dataOffset == -1) {
-            throw new IOException("在WAV文件中找不到data子块");
+            throw new IOException("Не найден блок data в WAV файле");
         }
 
         // 计算PCM数据大小
@@ -334,7 +334,7 @@ public class AudioUtils {
             // 直接读取PCM文件
             return Files.readAllBytes(Paths.get(filePath));
         } else {
-            throw new IOException("不支持的音频格式: " + filePath);
+            throw new IOException("Неподдерживаемый аудио формат: " + filePath);
         }
     }
 
@@ -374,7 +374,7 @@ public class AudioUtils {
             // 等待进程完成
             int exitCode = process.waitFor();
             if (exitCode != 0) {
-                throw new IOException("ffmpeg转换失败，退出代码: " + exitCode);
+                throw new IOException("Преобразование ffmpeg не удалось, код выхода: " + exitCode);
             }
 
             // 读取生成的PCM文件
@@ -386,10 +386,10 @@ public class AudioUtils {
             return pcmData;
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new IOException("ffmpeg处理被中断", e);
+            throw new IOException("Обработка ffmpeg была прервана", e);
         } catch (Exception e) {
-            logger.error("使用ffmpeg转换MP3失败", e);
-            throw new IOException("使用ffmpeg转换MP3失败: " + e.getMessage(), e);
+            logger.error("Не удалось преобразовать MP3 с помощью ffmpeg", e);
+            throw new IOException("Не удалось преобразовать MP3 с помощью ffmpeg: " + e.getMessage(), e);
         }
     }
 
@@ -442,7 +442,7 @@ public class AudioUtils {
             }
             process.waitFor();
         } catch (Exception e) {
-            logger.debug("获取音频时长失败: {}", pathStr, e);
+            logger.debug("Не удалось получить длительность аудио: {}", pathStr, e);
         }
         return -1;
     }

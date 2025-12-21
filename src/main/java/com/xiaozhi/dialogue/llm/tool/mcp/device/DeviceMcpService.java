@@ -168,7 +168,7 @@ public class DeviceMcpService {
                                         return response.getPayload().getError();
                                     }
                                 } else {
-                                    return "操作失败";
+                                    return "Операция не удалась";
                                 }
                             })
                             .toolMetadata(ToolMetadata.builder().returnDirect(false).build())// 设置返回值需要ai再处理

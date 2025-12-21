@@ -34,7 +34,7 @@ public class EmailUtils {
      * @return 发送结果
      */
     public boolean sendEmail(String to, String subject, String content) {
-        return sendEmail(to, subject, content, "小智物联网管理平台");
+        return sendEmail(to, subject, content, "Платформа управления Xiaozhi IoT");
     }
     
     /**
@@ -50,13 +50,13 @@ public class EmailUtils {
         try {
             // 验证邮箱格式
             if (!isValidEmail(to)) {
-                logger.error("邮箱格式不正确: {}", to);
+                logger.error("Неверный формат электронной почты: {}", to);
                 return false;
             }
             
             // 检查邮箱配置
             if (!StringUtils.hasText(emailUsername) || !StringUtils.hasText(emailPassword)) {
-                logger.error("未配置第三方邮箱认证信息");
+                logger.error("Не настроена информация для аутентификации сторонней электронной почты");
                 return false;
             }
             
@@ -70,12 +70,12 @@ public class EmailUtils {
                     .html(content)
                     .send();
             
-            logger.info("邮件发送成功: {} -> {}", fromName, to);
+            logger.info("Письмо успешно отправлено: {} -> {}", fromName, to);
             return true;
             
         } catch (Exception e) {
             String errorMsg = getErrorMessage(e);
-            logger.error("邮件发送失败: {} -> {}, 错误: {}", fromName, to, errorMsg, e);
+            logger.error("Не удалось отправить письмо: {} -> {}, ошибка: {}", fromName, to, errorMsg, e);
             return false;
         }
     }
@@ -88,8 +88,8 @@ public class EmailUtils {
      * @return 发送结果
      */
     public boolean sendCaptchaEmail(String to, String code) {
-        String subject = "小智ESP32-智能物联网管理平台";
-        String content = "尊敬的用户您好!您的验证码为:<h3>" + code + "</h3>如不是您操作,请忽略此邮件.(有效期10分钟)";
+        String subject = "Xiaozhi ESP32 - Платформа управления умным интернетом вещей";
+        String content = "Уважаемый пользователь! Ваш код подтверждения: <h3>" + code + "</h3>Если это не вы, проигнорируйте это письмо. (Срок действия 10 минут)";
         return sendEmail(to, subject, content);
     }
         
@@ -115,20 +115,20 @@ public class EmailUtils {
      */
     private String getErrorMessage(Exception e) {
         if (e.getMessage() == null) {
-            return "发送失败";
+            return "Отправка не удалась";
         }
         
         String message = e.getMessage();
         if (message.contains("non-existent account") ||
                 message.contains("550") ||
                 message.contains("recipient")) {
-            return "邮箱地址不存在或无效";
+            return "Адрес электронной почты не существует или недействителен";
         } else if (message.contains("Authentication failed")) {
-            return "邮箱服务认证失败，请联系管理员";
+            return "Ошибка аутентификации почтового сервиса, пожалуйста, свяжитесь с администратором";
         } else if (message.contains("timed out")) {
-            return "邮件发送超时，请稍后重试";
+            return "Превышено время ожидания отправки письма, пожалуйста, попробуйте позже";
         }
         
-        return "发送失败: " + message;
+        return "Отправка не удалась: " + message;
     }
 }

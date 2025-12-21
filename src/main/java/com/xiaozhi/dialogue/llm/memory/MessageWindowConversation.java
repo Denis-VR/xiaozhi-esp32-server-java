@@ -25,7 +25,7 @@ public class MessageWindowConversation extends Conversation {
         super(device, role, sessionId);
         this.maxMessages = maxMessages;
         this.chatMemory = chatMemory;
-        logger.info("加载设备{}的普通消息(SysMessage.MESSAGE_TYPE_NORMAL)作为对话历史",device.getDeviceId());
+        logger.info("Загрузка обычных сообщений устройства {} (SysMessage.MESSAGE_TYPE_NORMAL) как истории диалога", device.getDeviceId());
         List<Message> history = chatMemory.find(device.getDeviceId(), role.getRoleId(), maxMessages);
         super.messages.addAll(history) ;
     }

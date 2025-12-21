@@ -815,7 +815,7 @@ public class CmsUtils {
 
         // 对于私有IP地址，不进行地理位置查询
         if (isPrivateIp(ipAddress)) {
-            return new IPInfo(ipAddress, null, "内网");
+            return new IPInfo(ipAddress, null, "Внутренняя сеть");
         }
 
         // 首先尝试使用现有的IP_INFO_SERVICES（优先使用已有服务）
@@ -862,7 +862,7 @@ public class CmsUtils {
         }
 
         // 如果现有服务都无法查询，返回基本的IP信息
-        return new IPInfo(ipAddress, "未知位置", "未知运营商");
+        return new IPInfo(ipAddress, "Неизвестное местоположение", "Неизвестный оператор");
     }
 
     /**

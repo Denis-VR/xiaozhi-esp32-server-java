@@ -76,7 +76,7 @@ public class XfyunTtsService implements TtsService {
             if (success) {
                 return audioFilePath;
             } else {
-                throw new Exception("语音合成失败");
+                throw new Exception("Синтез речи не удался");
             }
         } catch (Exception e) {
             logger.error("语音合成时发生错误！", e);
@@ -139,7 +139,7 @@ public class XfyunTtsService implements TtsService {
         } catch (Exception e) {
             logger.error("发送TTS请求时发生错误", e);
             recognitionLatch.countDown();
-            throw new Exception("发送TTS请求失败", e);
+            throw new Exception("Не удалось отправить запрос TTS", e);
         }
         // 等待识别完成或超时
         boolean recognized = recognitionLatch.await(RECOGNITION_TIMEOUT_MS, TimeUnit.MILLISECONDS);

@@ -54,7 +54,7 @@ public class WxLoginServiceImpl implements WxLoginService {
                 }
             }
         } catch (Exception e) {
-            throw new RuntimeException("解析微信登录响应失败", e);
+            throw new RuntimeException("Не удалось разобрать ответ входа WeChat", e);
         }
         
         return result;
