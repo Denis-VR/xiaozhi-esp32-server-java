@@ -5,7 +5,6 @@ import com.xiaozhi.dialogue.llm.api.StreamResponseListener;
 import com.xiaozhi.dialogue.llm.factory.ChatModelFactory;
 import com.xiaozhi.dialogue.llm.memory.ChatMemory;
 import com.xiaozhi.dialogue.llm.tool.XiaoZhiToolCallingManager;
-import com.xiaozhi.dialogue.service.DialogueService;
 import com.xiaozhi.communication.common.SessionManager;
 import com.xiaozhi.mcp.McpSessionManager;
 import com.xiaozhi.dialogue.llm.memory.Conversation;
@@ -24,6 +23,7 @@ import org.springframework.ai.chat.model.Generation;
 import org.springframework.ai.chat.prompt.ChatOptions;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.model.tool.ToolCallingChatOptions;
+import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.ai.model.tool.ToolCallingManager;
 import org.springframework.ai.model.tool.ToolExecutionResult;
 import org.springframework.util.CollectionUtils;
@@ -243,11 +243,8 @@ public class ChatService {
                 conversationTimestamp = System.currentTimeMillis();
             }
 
-            ChatOptions chatOptions = ToolCallingChatOptions.builder()
-                    .toolCallbacks(useFunctionCall && session.isSupportFunctionCall() ? session.getToolCallbacks() : new ArrayList<>())
-                    .toolContext(TOOL_CONTEXT_SESSION_KEY, session)
-                    .toolContext("conversationTimestamp", conversationTimestamp)
-                    .build();
+            // Создаем ChatOptions с моделью из defaultOptions
+            ChatOptions chatOptions = createChatOptionsWithModel(chatModel, session, useFunctionCall, conversationTimestamp);
 
             UserMessage userMessage = new UserMessage(message);
             Long userTimeMillis = session.getUserTimeMillis();
@@ -321,11 +318,8 @@ public class ChatService {
             conversationTimestamp = System.currentTimeMillis();
         }
 
-        ChatOptions chatOptions = ToolCallingChatOptions.builder()
-                .toolCallbacks(useFunctionCall && session.isSupportFunctionCall() ? session.getToolCallbacks() : new ArrayList<>())
-                .toolContext(TOOL_CONTEXT_SESSION_KEY, session)
-                .toolContext("conversationTimestamp", conversationTimestamp)
-                .build();
+        // Создаем ChatOptions с моделью из defaultOptions
+        ChatOptions chatOptions = createChatOptionsWithModel(chatModel, session, useFunctionCall, conversationTimestamp);
 
         UserMessage userMessage = new UserMessage(message);
         Long userTimeMillis = session.getUserTimeMillis();
@@ -406,6 +400,41 @@ public class ChatService {
         } catch (Exception e) {
             logger.error("Ошибка при логировании параметров запроса: {}", e.getMessage(), e);
         }
+    }
+    
+    /**
+     * Создает ChatOptions с моделью из defaultOptions для OpenAI
+     */
+    private ChatOptions createChatOptionsWithModel(ChatModel chatModel, ChatSession session, 
+                                                   boolean useFunctionCall, Long conversationTimestamp) {
+        // Если это OpenAI модель, создаем OpenAiChatOptions с моделью из defaultOptions
+        if (chatModel instanceof org.springframework.ai.openai.OpenAiChatModel openAiChatModel) {
+            try {
+                var defaultOptions = openAiChatModel.getDefaultOptions();
+                if (defaultOptions != null && StringUtils.hasText(defaultOptions.getModel())) {
+                    // Создаем OpenAiChatOptions на основе defaultOptions с моделью
+                    OpenAiChatOptions openAiOptions = OpenAiChatOptions.builder()
+                            .model(defaultOptions.getModel())
+                            .temperature(defaultOptions.getTemperature())
+                            .topP(defaultOptions.getTopP())
+                            .maxTokens(defaultOptions.getMaxTokens())
+                            .build();
+                    
+                    logger.debug("Создан OpenAiChatOptions с моделью: {}", defaultOptions.getModel());
+                    return openAiOptions;
+                }
+            } catch (Exception e) {
+                logger.warn("Не удалось получить defaultOptions для создания ChatOptions: {}", e.getMessage());
+            }
+        }
+        
+        // Fallback: используем обычный ToolCallingChatOptions (без модели, будет ошибка)
+        logger.warn("Используется ToolCallingChatOptions без модели - возможна ошибка!");
+        return ToolCallingChatOptions.builder()
+                .toolCallbacks(useFunctionCall && session.isSupportFunctionCall() ? session.getToolCallbacks() : new ArrayList<>())
+                .toolContext(TOOL_CONTEXT_SESSION_KEY, session)
+                .toolContext("conversationTimestamp", conversationTimestamp)
+                .build();
     }
 
     public void chatStreamBySentence(ChatSession session, String message, boolean useFunctionCall,
