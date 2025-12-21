@@ -367,7 +367,10 @@ public class ChatService {
                 // ToolCallbacks обрабатываются через ToolCallingManager, но модель должна быть в ChatOptions
                 chatOptions = openAiOptions;
                 
-                logger.debug("Создан OpenAiChatOptions с моделью: {} для chatStream", defaultOptions.getModel());
+                logger.info("Создан OpenAiChatOptions с моделью: {} для chatStream, класс: {}", 
+                        defaultOptions.getModel(), openAiOptions.getClass().getName());
+                logger.info("OpenAiChatOptions.getModel() = {}", openAiOptions.getModel());
+                logger.info("OpenAiChatOptions.toString() = {}", openAiOptions);
             } else {
                 logger.error("defaultOptions пуст или модель не указана в chatStream!");
             }
@@ -378,9 +381,24 @@ public class ChatService {
         
         if (chatOptions == null) {
             logger.error("chatOptions is null в chatStream - модель НЕ будет передана в HTTP запрос!");
+        } else {
+            logger.info("chatOptions перед созданием Prompt: тип={}, является OpenAiChatOptions={}", 
+                    chatOptions.getClass().getName(), chatOptions instanceof OpenAiChatOptions);
+            if (chatOptions instanceof OpenAiChatOptions opts) {
+                logger.info("chatOptions.getModel() перед Prompt = {}", opts.getModel());
+            }
         }
         
         Prompt prompt = new Prompt(messages, chatOptions);
+        
+        // Проверяем ChatOptions после создания Prompt
+        ChatOptions promptOptions = prompt.getOptions();
+        logger.info("chatOptions ПОСЛЕ создания Prompt: тип={}, является OpenAiChatOptions={}", 
+                promptOptions != null ? promptOptions.getClass().getName() : "null",
+                promptOptions instanceof OpenAiChatOptions);
+        if (promptOptions instanceof OpenAiChatOptions opts) {
+            logger.info("promptOptions.getModel() после Prompt = {}", opts.getModel());
+        }
 
         // 调用实际的流式聊天方法
         return chatModel.stream(prompt);
