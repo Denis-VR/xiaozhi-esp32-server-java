@@ -259,7 +259,7 @@ public class ChatService {
             ChatResponse chatResponse = chatModel.call(prompt);
             if (chatResponse == null || chatResponse.getResult().getOutput().getText() == null) {
                 logger.warn("模型响应为空或无生成内容");
-                return "抱歉，我在处理您的请求时遇到了问题。请稍后再试。";
+                return "Извините, я столкнулся с проблемой при обработке вашего запроса. Пожалуйста, попробуйте позже.";
             }
             AssistantMessage assistantMessage = chatResponse.getResult().getOutput();
 
@@ -292,7 +292,7 @@ public class ChatService {
 
         } catch (Exception e) {
             logger.error("处理查询时出错: {}", e.getMessage(), e);
-            return "抱歉，我在处理您的请求时遇到了问题。请稍后再试。";
+            return "Извините, я столкнулся с проблемой при обработке вашего запроса. Пожалуйста, попробуйте позже.";
         }
     }
 

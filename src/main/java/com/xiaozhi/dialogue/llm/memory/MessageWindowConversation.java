@@ -149,7 +149,7 @@ public class MessageWindowConversation extends Conversation {
         String deviceLocation = device().getLocation();
         if (StringUtils.hasText(deviceLocation)) {
             roleDesc = (StringUtils.hasText(roleDesc) ? roleDesc + "\n\n" : "") +
-                       "当前位置：" + deviceLocation + "。如用户没有说明具体位置，则根据当前位置提供相关服务，如天气查询等。";
+                       "Current location：" + deviceLocation + ". If the user does not indicate a specific location, related services will be provided based on the current location, such as weather query, etc.";
         }
         SystemMessage systemMessage = new SystemMessage(StringUtils.hasText(roleDesc)?roleDesc:"");
         // maxMessages一般设置为偶数，而实际调用此方法时一般是已添加了UserMessage。缩减缓存的历史消息size时，一般是移除一轮（User+Assistant）
